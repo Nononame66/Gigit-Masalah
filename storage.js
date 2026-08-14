@@ -6,8 +6,8 @@
 const STORAGE_KEY = 'GIGITAN_KADAL_SAVE_V2';
 
 const DEFAULT_STATE = {
-  coins: 100,
-  level: 1,
+  coins: 1000,
+  level: 99,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
