@@ -1,0 +1,400 @@
+/* ==========================================================
+   Gigitan Kadal – Environment (LOW-POLY STYLIZED ISLAND WORLD)
+   Replaces the old voxel/blocky world with a faceted, flat-shaded
+   tropical look (gradient sky, faceted hills, floating-island feel).
+   Public API is identical to the old environment.js, so nothing
+   else in the project needs to change.
+   ========================================================== */
+
+import * as THREE from 'three';
+import {
+  createVoxelPlayer,
+  createVoxelRod,
+  createVoxelBobber,
+  createVoxelPier,
+  createVoxelTree
+} from './voxelModels.js';
+
+/* -------- Palette (Low-Poly Stylized Islands) -------- */
+const PALETTE = {
+  skyTop:    0x4fc3e8,
+  skyBottom: 0xfde68a,
+  fog:       0x8fd6e8,
+  seaDeep:   0x0b4f6c,
+  seaShallow:0x4fd1c5,
+  sand:      0xf4d9a0,
+  grass:     0x6bbf59,
+  grassDark: 0x4f9c46,
+  rock:      0x8d8f99,
+  cliff:     0x6b5842
+};
+
+export class GameEnvironment {
+  constructor(container) {
+    this.container = container;
+
+    this.scene = new THREE.Scene();
+    this.scene.fog = new THREE.FogExp2(PALETTE.fog, 0.0075);
+
+    this.camera = new THREE.PerspectiveCamera(
+      45, window.innerWidth / window.innerHeight, 0.1, 1000
+    );
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
+    this.renderer.toneMappingExposure = 1.1;
+    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+    this.container.appendChild(this.renderer.domElement);
+
+    this.setupSky();
+    this.setupLighting();
+    this.setupWater();
+    this.setupPierAndPlayer();
+    this.setupIslandScenery();
+    this.setupFishingLine();
+    this.setupParticles();
+
+    window.addEventListener('resize', () => this.onWindowResize());
+  }
+
+  /* ── Gradient sky dome (sunset -> blue) ─────────────────── */
+  setupSky() {
+    const skyGeo = new THREE.SphereGeometry(400, 24, 12);
+    const skyMat = new THREE.ShaderMaterial({
+      uniforms: {
+        topColor:    { value: new THREE.Color(PALETTE.skyTop) },
+        bottomColor: { value: new THREE.Color(PALETTE.skyBottom) },
+        offset:      { value: 15 },
+        exponent:    { value: 0.6 }
+      },
+      vertexShader: `
+        varying vec3 vWorldPosition;
+        void main() {
+          vec4 worldPosition = modelMatrix * vec4(position, 1.0);
+          vWorldPosition = worldPosition.xyz;
+          gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        }
+      `,
+      fragmentShader: `
+        uniform vec3 topColor;
+        uniform vec3 bottomColor;
+        uniform float offset;
+        uniform float exponent;
+        varying vec3 vWorldPosition;
+        void main() {
+          float h = normalize(vWorldPosition + vec3(0.0, offset, 0.0)).y;
+          gl_FragColor = vec4(mix(bottomColor, topColor, max(pow(max(h, 0.0), exponent), 0.0)), 1.0);
+        }
+      `,
+      side: THREE.BackSide
+    });
+    this.sky = new THREE.Mesh(skyGeo, skyMat);
+    this.scene.add(this.sky);
+  }
+
+  setupLighting() {
+    this.scene.add(new THREE.HemisphereLight(0xfff2d6, 0x2f6b4a, 0.9));
+
+    this.sun = new THREE.DirectionalLight(0xfff2cf, 1.5);
+    this.sun.position.set(30, 45, -20);
+    this.sun.castShadow = true;
+    this.sun.shadow.mapSize.set(2048, 2048);
+    this.sun.shadow.camera.near = 0.5;
+    this.sun.shadow.camera.far  = 140;
+    this.sun.shadow.camera.left = -40;
+    this.sun.shadow.camera.right = 40;
+    this.sun.shadow.camera.top   = 40;
+    this.sun.shadow.camera.bottom = -40;
+    this.sun.shadow.bias = -0.0001;
+    this.scene.add(this.sun);
+  }
+
+  setupWater() {
+    const geo = new THREE.PlaneGeometry(160, 160, 50, 50);
+    geo.rotateX(-Math.PI / 2);
+
+    this.waterMat = new THREE.MeshStandardMaterial({
+      color: PALETTE.seaShallow,
+      roughness: 0.08,
+      metalness: 0.25,
+      transparent: true,
+      opacity: 0.9,
+      flatShading: true
+    });
+
+    this.water = new THREE.Mesh(geo, this.waterMat);
+    this.water.position.set(0, 0, 30);
+    this.water.receiveShadow = true;
+    this.scene.add(this.water);
+
+    this.waterPositions = geo.attributes.position.array;
+    this.waterOriginalY = new Float32Array(this.waterPositions.length / 3);
+    for (let i = 0; i < this.waterOriginalY.length; i++)
+      this.waterOriginalY[i] = this.waterPositions[i * 3 + 1];
+
+    // Deep-sea floor beneath, for color depth in the distance
+    const deep = new THREE.Mesh(
+      new THREE.PlaneGeometry(300, 300),
+      new THREE.MeshStandardMaterial({ color: PALETTE.seaDeep, roughness: 1, flatShading: true })
+    );
+    deep.rotation.x = -Math.PI / 2;
+    deep.position.set(0, -3, 30);
+    this.scene.add(deep);
+  }
+
+  setupPierAndPlayer() {
+    this.pier = createVoxelPier();
+    this.pier.position.set(0, 1.6, 0);
+    this.scene.add(this.pier);
+
+    this.player = createVoxelPlayer();
+    this.player.position.set(0, 1.8, 4.0);
+    this.scene.add(this.player);
+
+    this.currentRodType = 'rod_wooden';
+    this.rodGroup = new THREE.Group();
+    this.updateRodModel(this.currentRodType);
+    this.player.userData.rightArm.add(this.rodGroup);
+    this.rodGroup.position.set(0.1, 1.2, 0.4);
+    this.rodGroup.rotation.x = -Math.PI / 6;
+
+    this.bobber = createVoxelBobber();
+    this.bobber.visible = false;
+    this.bobberTargetY = 0;
+    this.scene.add(this.bobber);
+
+    const sGeo = new THREE.PlaneGeometry(1.4, 0.7);
+    sGeo.rotateX(-Math.PI / 2);
+    this.fishShadow = new THREE.Mesh(sGeo, new THREE.MeshBasicMaterial({
+      color: 0x0b4f6c, transparent: true, opacity: 0.6
+    }));
+    this.fishShadow.position.set(0, 0.05, 0);
+    this.fishShadow.visible = false;
+    this.scene.add(this.fishShadow);
+  }
+
+  updateRodModel(rodType) {
+    this.currentRodType = rodType;
+    while (this.rodGroup.children.length)
+      this.rodGroup.remove(this.rodGroup.children[0]);
+    this.rodGroup.add(createVoxelRod(rodType));
+  }
+
+  /* ── Faceted low-poly island, cliffs, hills, trees, rocks ── */
+  setupIslandScenery() {
+    // Main island slab (keeps the exact same footprint the player
+    // collision system expects: x -18..18, z -22..2)
+    const ground = new THREE.Mesh(
+      new THREE.BoxGeometry(50, 1.2, 50),
+      new THREE.MeshStandardMaterial({ color: PALETTE.grass, roughness: 0.8, flatShading: true })
+    );
+    ground.position.set(0, 1.0, -12);
+    ground.receiveShadow = true;
+    ground.castShadow = true;
+    this.scene.add(ground);
+
+    // Faceted rock/cliff trim around the island edge for a "floating
+    // island" silhouette instead of a flat box edge
+    const cliffMat = new THREE.MeshStandardMaterial({ color: PALETTE.cliff, roughness: 0.9, flatShading: true });
+    const cliffEdgePositions = [
+      [-18, 0.2, -12], [18, 0.2, -12], [0, 0.2, -22],
+      [-13, 0.2, -20], [13, 0.2, -20], [-13, 0.2, -3], [13, 0.2, -3]
+    ];
+    cliffEdgePositions.forEach(([x, y, z]) => {
+      const chunk = new THREE.Mesh(new THREE.IcosahedronGeometry(1.6 + Math.random(), 0), cliffMat);
+      chunk.position.set(x, y, z);
+      chunk.scale.set(1, 0.7, 1);
+      chunk.castShadow = true;
+      chunk.receiveShadow = true;
+      this.scene.add(chunk);
+    });
+
+    // Sandy beach strip near the pier
+    const beachMat = new THREE.MeshStandardMaterial({ color: PALETTE.sand, roughness: 0.9, flatShading: true });
+    const beach = new THREE.Mesh(new THREE.BoxGeometry(8, 0.25, 10), beachMat);
+    beach.position.set(0, 1.55, 5);
+    beach.receiveShadow = true;
+    this.scene.add(beach);
+
+    [[-13, 1.55, -5], [13, 1.55, -5]].forEach(([x, y, z]) => {
+      const s = new THREE.Mesh(new THREE.BoxGeometry(10, 0.2, 8), beachMat.clone());
+      s.position.set(x, y, z);
+      s.receiveShadow = true;
+      this.scene.add(s);
+    });
+
+    // Background hills — faceted low-poly "gem" mountains
+    const hillMat = new THREE.MeshStandardMaterial({ color: PALETTE.grassDark, roughness: 0.85, flatShading: true });
+    const hills = [
+      [-14, 2.2, -26, 1.8, 1.6, 1.5],
+      [ 12, 2.8, -28, 2.0, 1.9, 1.8],
+      [  0, 4.0, -34, 2.4, 2.6, 2.0],
+      [ -7, 1.5, -20, 1.2, 1.1, 1.2],
+      [  8, 1.6, -21, 1.3, 1.2, 1.3]
+    ];
+    hills.forEach(([x, y, z, sx, sy, sz]) => {
+      const h = new THREE.Mesh(new THREE.IcosahedronGeometry(6, 0), hillMat.clone());
+      h.position.set(x, y, z);
+      h.scale.set(sx, sy, sz);
+      h.castShadow = true;
+      h.receiveShadow = true;
+      this.scene.add(h);
+    });
+
+    const peakMat = new THREE.MeshStandardMaterial({ color: 0x2f5c4a, roughness: 0.9, flatShading: true });
+    const peak = new THREE.Mesh(new THREE.IcosahedronGeometry(8, 0), peakMat);
+    peak.position.set(0, 5.5, -40);
+    peak.scale.set(2.4, 2.0, 2.0);
+    peak.castShadow = true;
+    this.scene.add(peak);
+
+    // Trees
+    [
+      [-13, 1.8, -17], [-8, 1.8, -19], [-15, 1.8, -8],
+      [ 13, 1.8, -17], [ 9, 1.8, -21], [ 15, 1.8, -7],
+      [ -3, 1.8, -15], [ 4, 1.8, -18]
+    ].forEach(([x, y, z]) => {
+      const t = createVoxelTree();
+      t.position.set(x, y, z);
+      t.rotation.y = Math.random() * Math.PI * 2;
+      const s = 0.85 + Math.random() * 0.3;
+      t.scale.set(s, s, s);
+      this.scene.add(t);
+    });
+
+    // Rocks
+    const rockMat = new THREE.MeshStandardMaterial({ color: PALETTE.rock, roughness: 0.7, flatShading: true });
+    [[-6, 2.2, 3], [7, 2.2, 2], [-11, 2.2, 4], [12, 2.2, 5]].forEach(([x, y, z]) => {
+      const r = new THREE.Mesh(new THREE.IcosahedronGeometry(1.1, 0), rockMat);
+      r.position.set(x, y, z);
+      r.rotation.set(Math.random(), Math.random(), Math.random());
+      r.castShadow = true;
+      this.scene.add(r);
+    });
+
+    // Clouds — flattened faceted low-poly puffs, warm sunset tint
+    this.clouds = new THREE.Group();
+    const cloudMat = new THREE.MeshStandardMaterial({
+      color: 0xfff6e6, transparent: true, opacity: 0.92, flatShading: true, roughness: 1
+    });
+    for (let i = 0; i < 12; i++) {
+      const c = new THREE.Mesh(new THREE.IcosahedronGeometry(3 + Math.random() * 3, 0), cloudMat);
+      c.scale.set(1.6, 0.5, 1);
+      c.position.set(
+        (Math.random() - 0.5) * 120,
+        24 + Math.random() * 8,
+        (Math.random() - 0.5) * 120
+      );
+      this.clouds.add(c);
+    }
+    this.scene.add(this.clouds);
+  }
+
+  setupFishingLine() {
+    const n = 20;
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(n * 3), 3));
+    this.fishingLine = new THREE.Line(geo, new THREE.LineBasicMaterial({ color: 0xffffff, linewidth: 2 }));
+    this.fishingLine.visible = false;
+    this.scene.add(this.fishingLine);
+  }
+
+  setupParticles() {
+    const n = 40;
+    const geo = new THREE.BufferGeometry();
+    const pos = new Float32Array(n * 3);
+    this.pVelocities = [];
+    for (let i = 0; i < n; i++) {
+      pos[i * 3 + 1] = -100;
+      this.pVelocities.push(new THREE.Vector3());
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(pos, 3));
+    this.splashParticles = new THREE.Points(geo,
+      new THREE.PointsMaterial({ color: 0xeafcff, size: 0.35, transparent: true, opacity: 0.9 })
+    );
+    this.scene.add(this.splashParticles);
+  }
+
+  triggerSplash(pos) {
+    const arr = this.splashParticles.geometry.attributes.position.array;
+    for (let i = 0; i < arr.length / 3; i++) {
+      arr[i * 3]     = pos.x + (Math.random() - 0.5) * 0.4;
+      arr[i * 3 + 1] = pos.y;
+      arr[i * 3 + 2] = pos.z + (Math.random() - 0.5) * 0.4;
+      this.pVelocities[i].set(
+        (Math.random() - 0.5) * 4,
+        2.5 + Math.random() * 4,
+        (Math.random() - 0.5) * 4
+      );
+    }
+    this.splashParticles.geometry.attributes.position.needsUpdate = true;
+  }
+
+  getRodTipWorldPosition() {
+    const tip = new THREE.Vector3(0, 1.8, 2.0);
+    this.rodGroup.localToWorld(tip);
+    return tip;
+  }
+
+  updateFishingLine(bobberPos) {
+    if (!this.bobber.visible) { this.fishingLine.visible = false; return; }
+    this.fishingLine.visible = true;
+
+    const rod = this.getRodTipWorldPosition();
+    const arr = this.fishingLine.geometry.attributes.position.array;
+    const n = arr.length / 3;
+    const mid = new THREE.Vector3().addVectors(rod, bobberPos).multiplyScalar(0.5);
+    mid.y -= 1.5;
+    const pts = new THREE.QuadraticBezierCurve3(rod, mid, bobberPos).getPoints(n - 1);
+    for (let i = 0; i < n; i++) {
+      arr[i * 3] = pts[i].x; arr[i * 3 + 1] = pts[i].y; arr[i * 3 + 2] = pts[i].z;
+    }
+    this.fishingLine.geometry.attributes.position.needsUpdate = true;
+  }
+
+  update(time, delta) {
+    // Water ripple
+    const pos = this.waterPositions;
+    for (let i = 0; i < this.waterOriginalY.length; i++) {
+      const u = pos[i * 3], v = pos[i * 3 + 2];
+      pos[i * 3 + 1] = Math.sin(time * 2.0 + u * 0.4 + v * 0.3) * 0.15;
+    }
+    this.water.geometry.attributes.position.needsUpdate = true;
+
+    // Clouds drift
+    this.clouds.children.forEach(c => {
+      c.position.x += delta * 0.8;
+      if (c.position.x > 70) c.position.x = -70;
+    });
+
+    // Splash particles
+    const pp = this.splashParticles.geometry.attributes.position.array;
+    for (let i = 0; i < pp.length / 3; i++) {
+      if (pp[i * 3 + 1] > -50) {
+        pp[i * 3]     += this.pVelocities[i].x * delta;
+        pp[i * 3 + 1] += this.pVelocities[i].y * delta;
+        pp[i * 3 + 2] += this.pVelocities[i].z * delta;
+        this.pVelocities[i].y -= 9.8 * delta;
+        if (pp[i * 3 + 1] < 0) pp[i * 3 + 1] = -100;
+      }
+    }
+    this.splashParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Bobber float
+    if (this.bobber.visible) {
+      this.bobber.position.y = this.bobberTargetY + Math.sin(time * 3.0) * 0.08;
+      this.updateFishingLine(this.bobber.position);
+    }
+  }
+
+  render() { this.renderer.render(this.scene, this.camera); }
+
+  onWindowResize() {
+    this.camera.aspect = window.innerWidth / window.innerHeight;
+    this.camera.updateProjectionMatrix();
+    this.renderer.setSize(window.innerWidth, window.innerHeight);
+  }
+}
