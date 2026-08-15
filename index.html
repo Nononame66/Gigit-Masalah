@@ -54,6 +54,9 @@
       <button id="btn-inventory" class="hud-nav-btn">
         <i class="fa-solid fa-bag-shopping"></i><span>Tas</span>
       </button>
+      <button id="btn-progress" class="hud-nav-btn">
+        <i class="fa-solid fa-bullseye"></i><span>Progres</span>
+      </button>
       <button id="btn-fishdex" class="hud-nav-btn cyan">
         <i class="fa-solid fa-book-fish"></i><span>Fishdex</span>
       </button>
@@ -232,6 +235,35 @@
     </div>
   </div>
 
+  <!-- Progress Modal (Daily Mission + Achievements) -->
+  <div id="modal-progress" class="modal-backdrop hidden">
+    <div class="modal-box progress-box">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-bullseye"></i> Progres</h2>
+        <button id="btn-close-progress" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="shop-tabs">
+        <button class="progress-tab active" data-tab="mission">🎯 Misi Harian</button>
+        <button class="progress-tab" data-tab="achievements">🏅 Lencana</button>
+      </div>
+
+      <div id="progress-mission-panel">
+        <p id="mission-label" class="mission-label">—</p>
+        <div class="mission-progress-track"><div id="mission-progress-fill" class="mission-progress-fill"></div></div>
+        <p id="mission-progress-text" class="mission-progress-text">0/0</p>
+        <button id="btn-claim-mission" class="hd-nav-btn gold wide" disabled>Klaim Hadiah</button>
+      </div>
+
+      <div id="progress-achievements-panel" class="hidden">
+        <div id="achievements-grid" class="fishdex-grid"></div>
+      </div>
+
+      <div class="settings-footer">
+        <button id="btn-reset" class="reset-link"><i class="fa-solid fa-rotate-left"></i> Reset Progress</button>
+      </div>
+    </div>
+  </div>
+
   <!-- Inventory Modal -->
   <div id="modal-inventory" class="modal-backdrop hidden">
     <div class="modal-box inventory-box">
@@ -262,7 +294,7 @@
           <span><strong>Naga Kosmik Bintang</strong> — naga kosmik yang berpendar seperti galaksi</span>
         </div>
       </div>
-      <p class="challenge-reward">Dapat salah satunya? Tunjukkan layar hasil tangkapannya buat klaim hadiah🎉<strong>Rp 2.500 </strong>!<br>Chat lewat IG <a href="https://www.instagram.com/abrisam.listiyo" target="_blank" rel="noopener" class="challenge-ig-link">@abrisam.listiyo</a> </p>
+      <p class="challenge-reward">Dapat salah satunya? Tunjukkan layar hasil tangkapannya buat klaim hadiah <strong>Rp 2.500</strong>!<br>Chat lewat IG <a href="https://www.instagram.com/abrisam.listiyo" target="_blank" rel="noopener" class="challenge-ig-link">@abrisam.listiyo</a> 🎉</p>
       <button id="btn-challenge-ok" class="hd-nav-btn gold wide">Oke, Siap Mancing!</button>
     </div>
   </div>

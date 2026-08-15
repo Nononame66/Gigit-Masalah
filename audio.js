@@ -319,69 +319,80 @@ class AudioManager {
   setupBackgroundMusic() {
     if (!this.ctx) return;
     this.musicGain = this.ctx.createGain();
-    this.musicGain.gain.value = storage.state.soundEnabled ? 0.12 : 0.0;
+    this.musicGain.gain.value = storage.state.soundEnabled ? 0.09 : 0.0;
     this.musicGain.connect(this.ctx.destination);
 
-    // Original bouncy, tropical arcade-fishing style loop (triangle bass +
-    // square lead + light shaker) — not a cover of any existing track.
-    const bassNotes = [130.81, 130.81, 164.81, 130.81, 146.83, 146.83, 174.61, 130.81];
-    const melodyNotes = [523.25, 587.33, 659.25, 587.33, 523.25, 659.25, 783.99, 659.25];
+    // Chill, relaxing lo-fi style loop: slow-attack chord pads that
+    // breathe in and out, plus a sparse wandering pentatonic pluck melody.
+    // Original composition, not a cover of any existing soundtrack.
+    const chords = [
+      [261.63, 329.63, 392.00, 493.88], // Cmaj7
+      [220.00, 261.63, 329.63, 392.00], // Am7
+      [174.61, 220.00, 261.63, 349.23], // Fmaj7
+      [196.00, 246.94, 293.66, 392.00]  // G6/add9
+    ];
+    const chordDuration = 4.4;
+    this.musicChordIndex = 0;
 
-    this.musicStep = 0;
-    const stepDuration = 0.28;
-
-    const scheduleStep = () => {
+    const playChord = () => {
       if (!this.ctx) return;
       const now = this.ctx.currentTime;
-      const step = this.musicStep % bassNotes.length;
+      const chord = chords[this.musicChordIndex % chords.length];
 
-      const bassOsc = this.ctx.createOscillator();
-      const bassGain = this.ctx.createGain();
-      bassOsc.type = 'triangle';
-      bassOsc.frequency.setValueAtTime(bassNotes[step], now);
-      bassGain.gain.setValueAtTime(0.5, now);
-      bassGain.gain.exponentialRampToValueAtTime(0.001, now + stepDuration * 0.9);
-      bassOsc.connect(bassGain);
-      bassGain.connect(this.musicGain);
-      bassOsc.start(now);
-      bassOsc.stop(now + stepDuration);
+      chord.forEach((freq, i) => {
+        const osc = this.ctx.createOscillator();
+        const gain = this.ctx.createGain();
+        osc.type = i === 0 ? 'triangle' : 'sine';
+        osc.frequency.setValueAtTime(freq, now);
 
-      if (step % 2 === 0) {
-        const melOsc = this.ctx.createOscillator();
-        const melGain = this.ctx.createGain();
-        melOsc.type = 'square';
-        melOsc.frequency.setValueAtTime(melodyNotes[step], now);
-        melGain.gain.setValueAtTime(0.16, now);
-        melGain.gain.exponentialRampToValueAtTime(0.001, now + stepDuration * 0.7);
-        melOsc.connect(melGain);
-        melGain.connect(this.musicGain);
-        melOsc.start(now);
-        melOsc.stop(now + stepDuration * 0.7);
-      }
+        const peak = i === 0 ? 0.08 : 0.04;
+        gain.gain.setValueAtTime(0.0001, now);
+        gain.gain.exponentialRampToValueAtTime(peak, now + 1.4);       // slow swell in
+        gain.gain.setValueAtTime(peak, now + chordDuration - 1.6);
+        gain.gain.exponentialRampToValueAtTime(0.0001, now + chordDuration); // slow fade out
 
-      if (step % 2 === 1) {
-        const noiseBuf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.03), this.ctx.sampleRate);
-        const data = noiseBuf.getChannelData(0);
-        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
-        const noise = this.ctx.createBufferSource();
-        noise.buffer = noiseBuf;
-        const hatFilter = this.ctx.createBiquadFilter();
-        hatFilter.type = 'highpass';
-        hatFilter.frequency.value = 6000;
-        const hatGain = this.ctx.createGain();
-        hatGain.gain.setValueAtTime(0.15, now);
-        hatGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
-        noise.connect(hatFilter);
-        hatFilter.connect(hatGain);
-        hatGain.connect(this.musicGain);
-        noise.start(now);
-      }
+        osc.connect(gain);
+        gain.connect(this.musicGain);
+        osc.start(now);
+        osc.stop(now + chordDuration + 0.1);
+      });
 
-      this.musicStep++;
+      this.musicChordIndex++;
     };
 
-    scheduleStep();
-    this.musicInterval = setInterval(scheduleStep, stepDuration * 1000);
+    playChord();
+    this.musicInterval = setInterval(playChord, chordDuration * 1000);
+
+    this.scheduleAmbientPluck();
+  }
+
+  scheduleAmbientPluck() {
+    const delay = 2200 + Math.random() * 3200;
+    this.pluckTimeout = setTimeout(() => {
+      if (this.isEnabled()) this.playAmbientPluck();
+      this.scheduleAmbientPluck();
+    }, delay);
+  }
+
+  playAmbientPluck() {
+    if (!this.ctx || !this.musicGain) return;
+    const pentatonic = [523.25, 587.33, 659.25, 784.00, 880.00]; // C D E G A
+    const now = this.ctx.currentTime;
+    const freq = pentatonic[Math.floor(Math.random() * pentatonic.length)];
+
+    const osc = this.ctx.createOscillator();
+    const gain = this.ctx.createGain();
+    osc.type = 'triangle';
+    osc.frequency.setValueAtTime(freq, now);
+
+    gain.gain.setValueAtTime(0.0001, now);
+    gain.gain.exponentialRampToValueAtTime(0.05, now + 0.03);
+    gain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+
+    osc.connect(gain);
+    gain.connect(this.musicGain);
+    osc.start(now);
+    osc.stop(now + 1.9);
   }
 
   updateSoundState() {
@@ -394,7 +405,7 @@ class AudioManager {
       this.windGain.gain.setValueAtTime(enabled ? 0.015 : 0.0, now);
     }
     if (this.musicGain) {
-      this.musicGain.gain.setValueAtTime(enabled ? 0.12 : 0.0, now);
+      this.musicGain.gain.setValueAtTime(enabled ? 0.09 : 0.0, now);
     }
   }
 }

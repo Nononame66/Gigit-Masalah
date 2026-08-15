@@ -3,7 +3,7 @@
    ========================================================== */
 
 import * as THREE from 'three';
-import { storage } from './storage.js';
+import { storage, ACHIEVEMENT_DEFS } from './storage.js';
 import { audio } from './audio.js';
 import { FISH_SPECIES, createVoxelFishModel, createVoxelJunkModel } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
@@ -179,11 +179,47 @@ export class UIManager {
       audio.playButtonClick();
     });
 
+    const btnReset = document.getElementById('btn-reset');
+    if (btnReset) {
+      btnReset.addEventListener('click', () => {
+        audio.playButtonClick();
+        const confirmed = window.confirm('Reset semua progress (koin, level, koleksi, misi)? Ini tidak bisa dibatalkan.');
+        if (confirmed) {
+          storage.resetProgress();
+          window.location.reload();
+        }
+      });
+    }
+
     document.getElementById('btn-shop').addEventListener('click', () => this.openShop());
     document.getElementById('btn-close-shop').addEventListener('click', () => this.closeModal('modal-shop'));
 
     document.getElementById('btn-fishdex').addEventListener('click', () => this.openFishdex());
     document.getElementById('btn-close-fishdex').addEventListener('click', () => this.closeModal('modal-fishdex'));
+
+    document.getElementById('btn-progress').addEventListener('click', () => this.openProgress());
+    document.getElementById('btn-close-progress').addEventListener('click', () => this.closeModal('modal-progress'));
+    document.getElementById('btn-claim-mission').addEventListener('click', () => {
+      const claimed = storage.claimDailyMission();
+      if (claimed) {
+        audio.playCoinSound();
+        this.updateHUD();
+        this.showAlert('Hadiah misi diklaim! 🎯', '🎉');
+        this.renderMissionTab();
+      }
+    });
+
+    const progressTabs = document.querySelectorAll('.progress-tab');
+    progressTabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        progressTabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        const targetTab = tab.dataset.tab;
+        document.getElementById('progress-mission-panel').classList.toggle('hidden', targetTab !== 'mission');
+        document.getElementById('progress-achievements-panel').classList.toggle('hidden', targetTab !== 'achievements');
+        audio.playButtonClick();
+      });
+    });
 
     const tabs = document.querySelectorAll('.shop-tab');
     tabs.forEach(tab => {
@@ -202,6 +238,7 @@ export class UIManager {
       if (engine.caughtFish) {
         storage.removeFromInventory(engine.caughtFish.id);
         storage.addCoins(engine.caughtFish.price);
+        storage.progressDailyMission('sell_fish', 1);
         audio.playCoinSound();
         this.updateHUD();
         this.closeModal('modal-catch');
@@ -417,6 +454,15 @@ export class UIManager {
     const container = document.getElementById('catch-preview-container');
     container.querySelectorAll('canvas').forEach(c => c.remove());
 
+    let loadingEl = container.querySelector('.preview-loading');
+    if (!loadingEl) {
+      loadingEl = document.createElement('div');
+      loadingEl.className = 'preview-loading';
+      loadingEl.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Memuat model...';
+      container.appendChild(loadingEl);
+    }
+    loadingEl.classList.remove('hidden');
+
     const scene = new THREE.Scene();
     const camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 100);
     camera.position.set(0, 1, 5);
@@ -437,6 +483,11 @@ export class UIManager {
     // Try a custom .glb model first (if one is configured for this id),
     // otherwise use the built-in low-poly model.
     let previewModel = await tryLoadCustomModelFor(fish.id);
+    loadingEl.classList.add('hidden');
+
+    // Bail out if the modal got closed while the model was loading.
+    if (!container.isConnected) return;
+
     if (!previewModel) {
       previewModel = fish.isJunk ? createVoxelJunkModel(fish.id) : createVoxelFishModel(fish.id);
     } else {
@@ -452,9 +503,6 @@ export class UIManager {
       previewModel.position.sub(center.multiplyScalar(targetSize / maxDim));
     }
     scene.add(previewModel);
-
-    // Bail out if the modal got closed while the model was loading.
-    if (!container.isConnected) return;
 
     let animId;
     const animate = () => {
@@ -693,6 +741,7 @@ export class UIManager {
           if (!entry) return;
           storage.removeFromInventory(itemId, 1);
           storage.addCoins(entry.price);
+          storage.progressDailyMission('sell_fish', 1);
           audio.playCoinSound();
           this.updateHUD();
           this.openInventory();
@@ -701,5 +750,47 @@ export class UIManager {
     }
 
     document.getElementById('modal-inventory').classList.remove('hidden');
+  }
+
+  openProgress() {
+    audio.playButtonClick();
+    storage.state = storage.load();
+    this.renderMissionTab();
+    this.renderAchievementsTab();
+    document.getElementById('modal-progress').classList.remove('hidden');
+  }
+
+  renderMissionTab() {
+    const mission = storage.ensureDailyMission();
+    document.getElementById('mission-label').textContent = mission.label;
+    const pct = Math.min(100, (mission.progress / mission.target) * 100);
+    document.getElementById('mission-progress-fill').style.width = `${pct}%`;
+    document.getElementById('mission-progress-text').textContent =
+      `${mission.progress}/${mission.target} · Hadiah: ${mission.reward} Koin`;
+
+    const claimBtn = document.getElementById('btn-claim-mission');
+    const ready = mission.progress >= mission.target && !mission.claimed;
+    claimBtn.disabled = !ready;
+    claimBtn.textContent = mission.claimed
+      ? 'Sudah Diklaim ✓'
+      : (ready ? 'Klaim Hadiah' : 'Belum Selesai');
+  }
+
+  renderAchievementsTab() {
+    const grid = document.getElementById('achievements-grid');
+    grid.innerHTML = '';
+    const unlocked = storage.state.achievements || {};
+
+    ACHIEVEMENT_DEFS.forEach(def => {
+      const isUnlocked = !!unlocked[def.id];
+      const card = document.createElement('div');
+      card.className = `fishdex-card ${isUnlocked ? '' : 'locked'}`;
+      card.innerHTML = `
+        <div class="fish-symbol">${isUnlocked ? def.icon : '🔒'}</div>
+        <div class="fish-name">${def.name}</div>
+        <div style="font-size:0.68rem; color:#cbd5e1; margin-top:4px;">${def.desc}</div>
+      `;
+      grid.appendChild(card);
+    });
   }
 }

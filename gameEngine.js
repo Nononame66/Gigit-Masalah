@@ -273,8 +273,19 @@ export class GameEngine {
       };
     }
 
-    const pool = FISH_SPECIES.filter(f => f.rarity === selected.rarity);
-    const species = pool[Math.floor(Math.random() * pool.length)] || FISH_SPECIES[0];
+    const isNight = !!(this.env && this.env.isNight);
+    const rarityPool = FISH_SPECIES.filter(f => f.rarity === selected.rarity);
+    const weightedPool = rarityPool.map(f => ({
+      species: f,
+      weight: f.nocturnal ? (isNight ? 3.0 : 0.35) : (isNight ? 0.7 : 1.0)
+    }));
+    const poolTotal = weightedPool.reduce((sum, w) => sum + w.weight, 0);
+    let poolRoll = Math.random() * poolTotal;
+    let species = weightedPool[0]?.species || FISH_SPECIES[0];
+    for (const w of weightedPool) {
+      if (poolRoll < w.weight) { species = w.species; break; }
+      poolRoll -= w.weight;
+    }
 
     const weight = parseFloat(
       (species.minWeight + Math.random() * (species.maxWeight - species.minWeight)).toFixed(1)
@@ -477,16 +488,35 @@ export class GameEngine {
       storage.recordFishCatch(this.caughtFish.id, this.caughtFish.weight);
       // Refresh the in-memory state immediately so Fishdex sees the new entry.
       storage.state = storage.load();
+    } else if (this.caughtFish.isJunk) {
+      storage.recordJunkCatch();
     }
 
     // Every catch (fish or junk) goes straight into the inventory bag.
     storage.addToInventory(this.caughtFish);
+
+    // Daily mission progress
+    storage.ensureDailyMission();
+    if (this.caughtFish.isJunk) {
+      storage.progressDailyMission('catch_junk', 1);
+    } else {
+      storage.progressDailyMission('catch_any', 1);
+      if (['Rare', 'Epic', 'Legendary', 'Mythic'].includes(this.caughtFish.rarity)) {
+        storage.progressDailyMission('catch_rare', 1);
+      }
+    }
+
+    // Achievements
+    const newlyUnlocked = storage.checkAchievements();
 
     this.ui.updateHUD();
 
     if (leveledUp) {
       this.ui.showAlert(`LEVEL UP! SEKARANG LEVEL ${storage.state.level}! 🎉`, '⭐');
     }
+    newlyUnlocked.forEach(def => {
+      this.ui.showAlert(`Achievement: ${def.name}! ${def.icon}`, '🏅');
+    });
 
     this.ui.showCatchModal(this.caughtFish);
   }

@@ -30,6 +30,14 @@ const PALETTE = {
   cliff:     0x6b5842
 };
 
+/* -------- Day / Night cycle palettes -------- */
+const DAY_SKY_TOP    = new THREE.Color(0x4fc3e8);
+const DAY_SKY_BOTTOM = new THREE.Color(0xfde68a);
+const NIGHT_SKY_TOP    = new THREE.Color(0x060b1f);
+const NIGHT_SKY_BOTTOM = new THREE.Color(0x1c2951);
+const DAY_FOG   = new THREE.Color(PALETTE.fog);
+const NIGHT_FOG = new THREE.Color(0x0d1730);
+
 export class GameEnvironment {
   constructor(container) {
     this.container = container;
@@ -50,15 +58,44 @@ export class GameEnvironment {
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
 
+    // Day/night cycle state — a full loop takes dayCycleDuration seconds.
+    // Starts partway into "day" so the world looks normal immediately.
+    this.dayCycleDuration = 240;
+    this.dayTime = this.dayCycleDuration * 0.3;
+    this.dayFactor = 1; // 1 = full day, 0 = full night
+    this.isNight = false;
+
     this.setupSky();
+    this.setupStars();
     this.setupLighting();
     this.setupWater();
     this.setupPierAndPlayer();
     this.setupIslandScenery();
     this.setupFishingLine();
     this.setupParticles();
+    this.setupSplashRing();
 
     window.addEventListener('resize', () => this.onWindowResize());
+  }
+
+  /* ── Simple starfield, fades in at night ─────────────────── */
+  setupStars() {
+    const starCount = 220;
+    const geo = new THREE.BufferGeometry();
+    const positions = new Float32Array(starCount * 3);
+    for (let i = 0; i < starCount; i++) {
+      const theta = Math.random() * Math.PI * 2;
+      const phi = Math.random() * Math.PI * 0.48;
+      const r = 380;
+      positions[i * 3]     = r * Math.sin(phi) * Math.cos(theta);
+      positions[i * 3 + 1] = r * Math.cos(phi) + 10;
+      positions[i * 3 + 2] = r * Math.sin(phi) * Math.sin(theta);
+    }
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    this.stars = new THREE.Points(geo, new THREE.PointsMaterial({
+      color: 0xffffff, size: 1.4, transparent: true, opacity: 0, sizeAttenuation: false
+    }));
+    this.scene.add(this.stars);
   }
 
   /* ── Gradient sky dome (sunset -> blue) ─────────────────── */
@@ -97,7 +134,8 @@ export class GameEnvironment {
   }
 
   setupLighting() {
-    this.scene.add(new THREE.HemisphereLight(0xfff2d6, 0x2f6b4a, 0.9));
+    this.hemiLight = new THREE.HemisphereLight(0xfff2d6, 0x2f6b4a, 0.9);
+    this.scene.add(this.hemiLight);
 
     this.sun = new THREE.DirectionalLight(0xfff2cf, 1.5);
     this.sun.position.set(30, 45, -20);
@@ -338,6 +376,19 @@ export class GameEnvironment {
     this.scene.add(this.splashParticles);
   }
 
+  setupSplashRing() {
+    const ringGeo = new THREE.RingGeometry(0.15, 0.35, 28);
+    const ringMat = new THREE.MeshBasicMaterial({
+      color: 0xeafcff, transparent: true, opacity: 0, side: THREE.DoubleSide
+    });
+    this.splashRing = new THREE.Mesh(ringGeo, ringMat);
+    this.splashRing.rotation.x = -Math.PI / 2;
+    this.splashRing.visible = false;
+    this.scene.add(this.splashRing);
+    this.splashRingActive = false;
+    this.splashRingTimer = 0;
+  }
+
   triggerSplash(pos) {
     const arr = this.splashParticles.geometry.attributes.position.array;
     for (let i = 0; i < arr.length / 3; i++) {
@@ -351,6 +402,14 @@ export class GameEnvironment {
       );
     }
     this.splashParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Expanding ripple ring on the water surface
+    this.splashRing.position.set(pos.x, 0.05, pos.z);
+    this.splashRing.scale.set(1, 1, 1);
+    this.splashRing.material.opacity = 0.7;
+    this.splashRing.visible = true;
+    this.splashRingActive = true;
+    this.splashRingTimer = 0;
   }
 
   getRodTipWorldPosition() {
@@ -376,6 +435,23 @@ export class GameEnvironment {
   }
 
   update(time, delta) {
+    // Day-night cycle
+    this.dayTime = (this.dayTime + delta) % this.dayCycleDuration;
+    const phase = (this.dayTime / this.dayCycleDuration) * Math.PI * 2;
+    this.dayFactor = (Math.sin(phase - Math.PI / 2) + 1) / 2; // 0 = deep night, 1 = full day
+    this.isNight = this.dayFactor < 0.35;
+
+    const skyTop = new THREE.Color().lerpColors(NIGHT_SKY_TOP, DAY_SKY_TOP, this.dayFactor);
+    const skyBottom = new THREE.Color().lerpColors(NIGHT_SKY_BOTTOM, DAY_SKY_BOTTOM, this.dayFactor);
+    this.sky.material.uniforms.topColor.value.copy(skyTop);
+    this.sky.material.uniforms.bottomColor.value.copy(skyBottom);
+
+    this.scene.fog.color.lerpColors(NIGHT_FOG, DAY_FOG, this.dayFactor);
+    this.sun.intensity = 0.35 + this.dayFactor * 1.25;
+    this.hemiLight.intensity = 0.35 + this.dayFactor * 0.65;
+
+    this.stars.material.opacity = (1 - this.dayFactor) * 0.85;
+
     // Water ripple
     const pos = this.waterPositions;
     for (let i = 0; i < this.waterOriginalY.length; i++) {
@@ -402,6 +478,19 @@ export class GameEnvironment {
       }
     }
     this.splashParticles.geometry.attributes.position.needsUpdate = true;
+
+    // Ripple ring expansion
+    if (this.splashRingActive) {
+      this.splashRingTimer += delta;
+      const p = Math.min(1, this.splashRingTimer / 0.9);
+      const scale = 1 + p * 12;
+      this.splashRing.scale.set(scale, scale, scale);
+      this.splashRing.material.opacity = 0.7 * (1 - p);
+      if (p >= 1) {
+        this.splashRingActive = false;
+        this.splashRing.visible = false;
+      }
+    }
 
     // Bobber float
     if (this.bobber.visible) {

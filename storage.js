@@ -5,24 +5,53 @@
 
 const STORAGE_KEY = 'GIGIT_MASALAH_SAVE_V3';
 
+/* -------- Achievement definitions -------- */
+export const ACHIEVEMENT_DEFS = [
+  { id: 'fishdex_25', name: 'Kolektor Pemula', desc: 'Lengkapi 25% Fishdex', icon: '🥉',
+    check: (s) => Object.keys(s.fishdex).length >= 4 },
+  { id: 'fishdex_50', name: 'Kolektor Handal', desc: 'Lengkapi 50% Fishdex', icon: '🥈',
+    check: (s) => Object.keys(s.fishdex).length >= 8 },
+  { id: 'fishdex_100', name: 'Master Fishdex', desc: 'Lengkapi semua 15 spesies ikan', icon: '🥇',
+    check: (s) => Object.keys(s.fishdex).length >= 15 },
+  { id: 'junk_100', name: 'Raja Sampah', desc: 'Dapatkan barang sampah 100 kali', icon: '🗑️',
+    check: (s) => (s.stats.totalJunkCaught || 0) >= 100 },
+  { id: 'catch_500', name: 'Pemancing Sejati', desc: 'Total tangkapan 500 kali (ikan + sampah)', icon: '🎣',
+    check: (s) => (s.stats.totalCaught || 0) + (s.stats.totalJunkCaught || 0) >= 500 },
+  { id: 'mythic_1', name: 'Legenda Hidup', desc: 'Tangkap 1 ikan Mythic', icon: '🐲',
+    check: (s) => !!(s.fishdex['leviathan'] || s.fishdex['cosmic_dragon']) },
+  { id: 'coins_5000', name: 'Sultan Sungai', desc: 'Kumpulkan total 5000 koin sepanjang waktu', icon: '💰',
+    check: (s) => (s.stats.totalCoinsEarned || 0) >= 5000 }
+];
+
+/* -------- Daily mission templates -------- */
+const MISSION_TEMPLATES = [
+  { type: 'catch_any',  label: (t) => `Tangkap ${t} ikan (jenis apa saja)`, target: 5, reward: 40 },
+  { type: 'catch_rare', label: (t) => `Tangkap ${t} ikan Rare ke atas`, target: 3, reward: 60 },
+  { type: 'catch_junk', label: (t) => `Dapatkan ${t} barang sampah`, target: 6, reward: 30 },
+  { type: 'sell_fish',  label: (t) => `Jual hasil tangkapan ${t} kali`, target: 4, reward: 45 }
+];
+
 const DEFAULT_STATE = {
-  coins: 495,
-  level: 1,
+  coins: 5000,
+  level: 99,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
   unlockedRods: ['rod_wooden'],
   equippedBait: 'worm',
   baits: {
-    worm: 25,
+    worm: 20,
     glowing: 5,
     golden: 0,
     magnet: 0
   },
   fishdex: {},
   inventory: {},
+  achievements: {},
+  dailyMission: null,
   stats: {
     totalCaught: 0,
+    totalJunkCaught: 0,
     totalCoinsEarned: 0
   },
   soundEnabled: true
@@ -46,7 +75,14 @@ export class StorageManager {
             : {},
           inventory: (parsed && parsed.inventory && typeof parsed.inventory === 'object')
             ? parsed.inventory
-            : {}
+            : {},
+          achievements: (parsed && parsed.achievements && typeof parsed.achievements === 'object')
+            ? parsed.achievements
+            : {},
+          stats: {
+            ...DEFAULT_STATE.stats,
+            ...(parsed && parsed.stats ? parsed.stats : {})
+          }
         };
       }
     } catch (e) {
@@ -143,6 +179,72 @@ export class StorageManager {
     }
     this.state.stats.totalCaught += 1;
     this.save();
+  }
+
+  recordJunkCatch() {
+    this.state.stats.totalJunkCaught = (this.state.stats.totalJunkCaught || 0) + 1;
+    this.save();
+  }
+
+  /* -------- Daily mission -------- */
+  getTodayDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${d.getMonth() + 1}-${d.getDate()}`;
+  }
+
+  ensureDailyMission() {
+    const today = this.getTodayDateString();
+    if (!this.state.dailyMission || this.state.dailyMission.date !== today) {
+      const tpl = MISSION_TEMPLATES[Math.floor(Math.random() * MISSION_TEMPLATES.length)];
+      this.state.dailyMission = {
+        date: today,
+        type: tpl.type,
+        label: tpl.label(tpl.target),
+        target: tpl.target,
+        progress: 0,
+        reward: tpl.reward,
+        claimed: false
+      };
+      this.save();
+    }
+    return this.state.dailyMission;
+  }
+
+  progressDailyMission(type, amount = 1) {
+    const m = this.state.dailyMission;
+    if (!m || m.claimed || m.type !== type) return;
+    m.progress = Math.min(m.target, m.progress + amount);
+    this.save();
+  }
+
+  claimDailyMission() {
+    const m = this.state.dailyMission;
+    if (!m || m.claimed || m.progress < m.target) return false;
+    m.claimed = true;
+    this.addCoins(m.reward);
+    this.save();
+    return true;
+  }
+
+  /* -------- Achievements -------- */
+  checkAchievements() {
+    const newlyUnlocked = [];
+    ACHIEVEMENT_DEFS.forEach(def => {
+      if (!this.state.achievements[def.id] && def.check(this.state)) {
+        this.state.achievements[def.id] = true;
+        newlyUnlocked.push(def);
+      }
+    });
+    if (newlyUnlocked.length) this.save();
+    return newlyUnlocked;
+  }
+
+  resetProgress() {
+    try {
+      localStorage.removeItem(STORAGE_KEY);
+    } catch (e) {
+      console.error('Failed to reset progress:', e);
+    }
   }
 
   addToInventory(item) {
