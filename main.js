@@ -46,6 +46,19 @@ function init() {
 
   // 7. Start loop
   requestAnimationFrame(animate);
+
+  // 8. Show the friend-challenge popup a moment after load
+  const challengeModal = document.getElementById('modal-challenge');
+  if (challengeModal) {
+    setTimeout(() => challengeModal.classList.remove('hidden'), 700);
+
+    const closeChallenge = () => challengeModal.classList.add('hidden');
+    document.getElementById('btn-close-challenge')?.addEventListener('click', closeChallenge);
+    document.getElementById('btn-challenge-ok')?.addEventListener('click', closeChallenge);
+    challengeModal.addEventListener('click', (e) => {
+      if (e.target === challengeModal) closeChallenge();
+    });
+  }
 }
 
 function animate(now) {

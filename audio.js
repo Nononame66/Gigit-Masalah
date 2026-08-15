@@ -19,6 +19,8 @@ class AudioManager {
       this.ctx = new AudioCtx();
       this.isInitialized = true;
       this.setupAmbientWater();
+      this.setupAmbientWind();
+      this.scheduleAmbientBirds();
     } catch (e) {
       console.warn('Web Audio API not supported:', e);
     }
@@ -247,12 +249,80 @@ class AudioManager {
     noise.start();
   }
 
+  setupAmbientWind() {
+    if (!this.ctx) return;
+    // Soft filtered noise for a gentle breeze under the water hush
+    const bufferSize = this.ctx.sampleRate * 3;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    let lastOut = 0.0;
+    for (let i = 0; i < bufferSize; i++) {
+      const white = Math.random() * 2 - 1;
+      data[i] = (lastOut + (0.015 * white)) / 1.015;
+      lastOut = data[i];
+    }
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'bandpass';
+    filter.frequency.value = 900;
+    filter.Q.value = 0.6;
+
+    this.windGain = this.ctx.createGain();
+    this.windGain.gain.value = storage.state.soundEnabled ? 0.015 : 0.0;
+
+    noise.connect(filter);
+    filter.connect(this.windGain);
+    this.windGain.connect(this.ctx.destination);
+
+    noise.start();
+  }
+
+  scheduleAmbientBirds() {
+    const delay = 4000 + Math.random() * 8000;
+    this.birdTimeout = setTimeout(() => {
+      if (this.isEnabled()) this.playBirdChirp();
+      this.scheduleAmbientBirds();
+    }, delay);
+  }
+
+  playBirdChirp() {
+    if (!this.ctx) return;
+    const now = this.ctx.currentTime;
+    const notes = 2 + Math.floor(Math.random() * 2);
+    for (let i = 0; i < notes; i++) {
+      const osc = this.ctx.createOscillator();
+      const gain = this.ctx.createGain();
+      const startFreq = 1800 + Math.random() * 800;
+      const t = now + i * 0.12;
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(startFreq, t);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 1.4, t + 0.06);
+      osc.frequency.exponentialRampToValueAtTime(startFreq * 0.8, t + 0.12);
+
+      gain.gain.setValueAtTime(0.0001, t);
+      gain.gain.exponentialRampToValueAtTime(0.05, t + 0.02);
+      gain.gain.exponentialRampToValueAtTime(0.0001, t + 0.14);
+
+      osc.connect(gain);
+      gain.connect(this.ctx.destination);
+      osc.start(t);
+      osc.stop(t + 0.16);
+    }
+  }
+
   updateSoundState() {
+    const enabled = storage.state.soundEnabled;
+    const now = this.ctx ? this.ctx.currentTime : 0;
     if (this.ambientGain) {
-      this.ambientGain.gain.setValueAtTime(
-        storage.state.soundEnabled ? 0.04 : 0.0,
-        this.ctx ? this.ctx.currentTime : 0
-      );
+      this.ambientGain.gain.setValueAtTime(enabled ? 0.04 : 0.0, now);
+    }
+    if (this.windGain) {
+      this.windGain.gain.setValueAtTime(enabled ? 0.015 : 0.0, now);
     }
   }
 }
