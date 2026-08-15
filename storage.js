@@ -6,15 +6,15 @@
 const STORAGE_KEY = 'GIGIT_MASALAH_SAVE_V3';
 
 const DEFAULT_STATE = {
-  coins: 5000,
-  level: 99,
+  coins: 500,
+  level: 1,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
   unlockedRods: ['rod_wooden'],
   equippedBait: 'worm',
   baits: {
-    worm: 20,
+    worm: 25,
     glowing: 5,
     golden: 0,
     magnet: 0
