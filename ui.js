@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { storage } from './storage.js';
 import { audio } from './audio.js';
 import { FISH_SPECIES, createVoxelFishModel, createVoxelJunkModel } from './voxelModels.js';
+import { tryLoadCustomModelFor } from './modelLoader.js';
 
 export const SHOP_RODS = [
   { 
@@ -408,7 +409,7 @@ export class UIManager {
     box.classList.add('catch-reveal');
   }
 
-  renderFish3DPreview(fish) {
+  async renderFish3DPreview(fish) {
     const container = document.getElementById('catch-preview-container');
     container.querySelectorAll('canvas').forEach(c => c.remove());
 
@@ -429,8 +430,27 @@ export class UIManager {
     scene.add(light);
     scene.add(new THREE.HemisphereLight(0xffffff, 0x444444, 0.9));
 
-    const previewModel = fish.isJunk ? createVoxelJunkModel(fish.id) : createVoxelFishModel(fish.id);
+    // Try a custom .glb model first (if one is configured for this id),
+    // otherwise use the built-in low-poly model.
+    let previewModel = await tryLoadCustomModelFor(fish.id);
+    if (!previewModel) {
+      previewModel = fish.isJunk ? createVoxelJunkModel(fish.id) : createVoxelFishModel(fish.id);
+    } else {
+      // Normalize custom model scale/position roughly into view.
+      const box = new THREE.Box3().setFromObject(previewModel);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const targetSize = 1.4;
+      previewModel.scale.multiplyScalar(targetSize / maxDim);
+      const center = new THREE.Vector3();
+      box.getCenter(center);
+      previewModel.position.sub(center.multiplyScalar(targetSize / maxDim));
+    }
     scene.add(previewModel);
+
+    // Bail out if the modal got closed while the model was loading.
+    if (!container.isConnected) return;
 
     let animId;
     const animate = () => {

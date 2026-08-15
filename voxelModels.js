@@ -287,17 +287,13 @@ export const FISH_SPECIES = [
   { id: 'cosmic_dragon', name: 'Naga Kosmik Bintang', rarity: 'Mythic', rarityColor: '#ec4899', minWeight: 40.0, maxWeight: 120.0, basePrice: 2500, xpReward: 1200, desc: 'Naga kosmik pencipta samudera berpendar cahaya bintang.', symbol: '🌌', colors: [0x312e81, 0x818cf8, 0xf472b6] }
 ];
 
-export function createVoxelFishModel(fishId) {
-  const species = FISH_SPECIES.find(f => f.id === fishId) || FISH_SPECIES[0];
+/* -------- Archetype builders (shared by several species) -------- */
+
+function buildStandardFish(c1, c2, c3, scale, rarity) {
   const group = new THREE.Group();
-  const [c1, c2, c3] = species.colors;
-
-  const isBig = species.rarity === 'Legendary' || species.rarity === 'Mythic';
-  const scale = isBig ? 1.6 : 1.0;
-
   const body = new THREE.Mesh(
     new THREE.IcosahedronGeometry(0.36 * scale, 1),
-    getHDMaterial(c1, 0.35, 0.15, species.rarity === 'Mythic' ? 0x581c87 : 0)
+    getHDMaterial(c1, 0.35, 0.15, rarity === 'Mythic' ? 0x581c87 : 0)
   );
   body.scale.set(1.0, 1.15, 2.1);
   body.castShadow = true;
@@ -313,6 +309,211 @@ export function createVoxelFishModel(fishId) {
   group.add(fin);
 
   return group;
+}
+
+function buildLizardCreature(c1, c2, c3, scale, opts = {}) {
+  const group = new THREE.Group();
+
+  const body = new THREE.Mesh(new THREE.CylinderGeometry(0.2 * scale, 0.24 * scale, 1.1 * scale, 6), getHDMaterial(c1, 0.55));
+  body.rotation.z = Math.PI / 2;
+  body.castShadow = true;
+  group.add(body);
+
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.2 * scale, 0.42 * scale, 5), getHDMaterial(c1, 0.55));
+  head.rotation.z = -Math.PI / 2;
+  head.position.set(0.72 * scale, 0, 0);
+  group.add(head);
+
+  const tail = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.75 * scale, 5), getHDMaterial(c2, 0.55));
+  tail.rotation.z = Math.PI / 2;
+  tail.position.set(-0.85 * scale, 0, 0);
+  group.add(tail);
+
+  // Four short legs
+  [[-0.28, -0.32], [0.28, -0.32], [-0.28, 0.32], [0.28, 0.32]].forEach(([x, z]) => {
+    const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.045 * scale, 0.06 * scale, 0.34 * scale, 5), getHDMaterial(c2, 0.6));
+    leg.position.set(x * scale, -0.16 * scale, z * scale);
+    leg.rotation.x = z > 0 ? -0.3 : 0.3;
+    group.add(leg);
+  });
+
+  if (opts.spikes) {
+    for (let i = -2; i <= 2; i++) {
+      const spike = new THREE.Mesh(new THREE.ConeGeometry(0.06 * scale, 0.16 * scale, 4), getHDMaterial(c3, 0.4));
+      spike.position.set(i * 0.22 * scale, 0.2 * scale, 0);
+      group.add(spike);
+    }
+  }
+  if (opts.crown) {
+    const crown = new THREE.Mesh(new THREE.ConeGeometry(0.16 * scale, 0.3 * scale, 5), getHDMaterial(c3, 0.3, 0.5));
+    crown.position.set(0.5 * scale, 0.24 * scale, 0);
+    crown.rotation.z = -0.5;
+    group.add(crown);
+  }
+  if (opts.frills) {
+    [-1, 1].forEach(side => {
+      const frill = new THREE.Mesh(new THREE.ConeGeometry(0.1 * scale, 0.3 * scale, 4), getHDMaterial(c3, 0.5));
+      frill.position.set(0.55 * scale, 0.05 * scale, side * 0.22 * scale);
+      frill.rotation.z = Math.PI / 2.3;
+      group.add(frill);
+    });
+  }
+
+  return group;
+}
+
+function buildCrab(c1, c2, c3, scale) {
+  const group = new THREE.Group();
+
+  const shell = new THREE.Mesh(new THREE.IcosahedronGeometry(0.42 * scale, 0), getHDMaterial(c1, 0.5));
+  shell.scale.set(1.3, 0.55, 1.0);
+  shell.castShadow = true;
+  group.add(shell);
+
+  [-1, 1].forEach(side => {
+    const claw = new THREE.Mesh(new THREE.IcosahedronGeometry(0.16 * scale, 0), getHDMaterial(c2, 0.4));
+    claw.position.set(side * 0.62 * scale, 0.02 * scale, 0.05 * scale);
+    group.add(claw);
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.045 * scale, 0.06 * scale, 0.3 * scale, 5), getHDMaterial(c2, 0.4));
+    arm.rotation.z = Math.PI / 2;
+    arm.position.set(side * 0.42 * scale, 0.02 * scale, 0.05 * scale);
+    group.add(arm);
+  });
+
+  for (let i = 0; i < 3; i++) {
+    [-1, 1].forEach(side => {
+      const leg = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * scale, 0.04 * scale, 0.32 * scale, 4), getHDMaterial(c3, 0.5));
+      leg.position.set(side * (0.25 + i * 0.12) * scale, -0.1 * scale, -0.1 * scale + i * 0.03);
+      leg.rotation.z = side * 1.0;
+      group.add(leg);
+    });
+  }
+
+  const eyeGeo = new THREE.IcosahedronGeometry(0.045 * scale, 0);
+  const eyeMat = getHDMaterial(0x000000, 0.2);
+  [-1, 1].forEach(side => {
+    const eye = new THREE.Mesh(eyeGeo, eyeMat);
+    eye.position.set(side * 0.14 * scale, 0.22 * scale, 0.28 * scale);
+    group.add(eye);
+  });
+
+  return group;
+}
+
+function buildSquid(c1, c2, c3, scale) {
+  const group = new THREE.Group();
+
+  const mantle = new THREE.Mesh(new THREE.ConeGeometry(0.3 * scale, 0.85 * scale, 6), getHDMaterial(c1, 0.4, 0.1));
+  mantle.rotation.x = Math.PI;
+  mantle.position.y = 0.35 * scale;
+  mantle.castShadow = true;
+  group.add(mantle);
+
+  const fin = new THREE.Mesh(new THREE.ConeGeometry(0.34 * scale, 0.2 * scale, 4), getHDMaterial(c3, 0.4));
+  fin.position.y = 0.68 * scale;
+  fin.scale.set(1, 0.4, 1);
+  group.add(fin);
+
+  const tentacleCount = 6;
+  for (let i = 0; i < tentacleCount; i++) {
+    const angle = (i / tentacleCount) * Math.PI * 2;
+    const tentacle = new THREE.Mesh(new THREE.CylinderGeometry(0.03 * scale, 0.05 * scale, 0.6 * scale, 4), getHDMaterial(c2, 0.4));
+    tentacle.position.set(Math.cos(angle) * 0.14 * scale, -0.3 * scale, Math.sin(angle) * 0.14 * scale);
+    tentacle.rotation.x = Math.cos(angle) * 0.3;
+    tentacle.rotation.z = Math.sin(angle) * -0.3;
+    group.add(tentacle);
+  }
+
+  return group;
+}
+
+function buildShark(c1, c2, c3, scale) {
+  const group = new THREE.Group();
+
+  const body = new THREE.Mesh(new THREE.ConeGeometry(0.3 * scale, 1.4 * scale, 6), getHDMaterial(c1, 0.4));
+  body.rotation.z = Math.PI / 2;
+  body.castShadow = true;
+  group.add(body);
+
+  const dorsalFin = new THREE.Mesh(new THREE.ConeGeometry(0.14 * scale, 0.4 * scale, 3), getHDMaterial(c2, 0.4));
+  dorsalFin.position.set(0.1 * scale, 0.28 * scale, 0);
+  group.add(dorsalFin);
+
+  const tailFin = new THREE.Mesh(new THREE.ConeGeometry(0.28 * scale, 0.55 * scale, 3), getHDMaterial(c2, 0.4));
+  tailFin.rotation.x = Math.PI / 2;
+  tailFin.position.set(-0.85 * scale, 0, 0);
+  group.add(tailFin);
+
+  [-1, 1].forEach(side => {
+    const sideFin = new THREE.Mesh(new THREE.ConeGeometry(0.1 * scale, 0.32 * scale, 3), getHDMaterial(c3, 0.4));
+    sideFin.rotation.z = side * Math.PI / 2.4;
+    sideFin.position.set(0.15 * scale, -0.1 * scale, side * 0.22 * scale);
+    group.add(sideFin);
+  });
+
+  return group;
+}
+
+function buildSerpent(c1, c2, c3, scale) {
+  const group = new THREE.Group();
+
+  const segCount = 5;
+  for (let i = 0; i < segCount; i++) {
+    const segScale = 1 - (i / segCount) * 0.55;
+    const seg = new THREE.Mesh(new THREE.IcosahedronGeometry(0.22 * scale * segScale, 0), getHDMaterial(i % 2 === 0 ? c1 : c2, 0.4, 0.15, 0x581c87));
+    seg.position.set(0.55 * scale - i * 0.34 * scale, Math.sin(i * 0.8) * 0.12 * scale, 0);
+    seg.castShadow = true;
+    group.add(seg);
+  }
+
+  const head = new THREE.Mesh(new THREE.ConeGeometry(0.22 * scale, 0.4 * scale, 5), getHDMaterial(c1, 0.35, 0.15, 0x581c87));
+  head.rotation.z = -Math.PI / 2;
+  head.position.set(0.95 * scale, 0, 0);
+  group.add(head);
+
+  [-1, 1].forEach(side => {
+    const horn = new THREE.Mesh(new THREE.ConeGeometry(0.05 * scale, 0.2 * scale, 4), getHDMaterial(c3, 0.3));
+    horn.position.set(0.98 * scale, 0.12 * scale, side * 0.08 * scale);
+    group.add(horn);
+  });
+
+  return group;
+}
+
+/* -------- Species id -> archetype dispatch -------- */
+const ARCHETYPE_BY_ID = {
+  kadal_air:   { type: 'lizard' },
+  biawak:      { type: 'lizard', opts: { spikes: true } },
+  komodo:      { type: 'lizard', opts: { spikes: true } },
+  salamander:  { type: 'lizard', opts: { frills: true } },
+  axolotl:     { type: 'lizard', opts: { frills: true } },
+  lava_kadal:  { type: 'lizard', opts: { spikes: true } },
+  golden_kadal:{ type: 'lizard', opts: { crown: true } },
+  kepiting:    { type: 'crab' },
+  cumi:        { type: 'squid' },
+  shark:       { type: 'shark' },
+  leviathan:   { type: 'serpent' },
+  cosmic_dragon:{ type: 'serpent' }
+  // perch, salmon, koi -> default standard fish shape
+};
+
+export function createVoxelFishModel(fishId) {
+  const species = FISH_SPECIES.find(f => f.id === fishId) || FISH_SPECIES[0];
+  const [c1, c2, c3] = species.colors;
+  const isBig = species.rarity === 'Legendary' || species.rarity === 'Mythic';
+  const scale = isBig ? 1.6 : 1.0;
+
+  const archetype = ARCHETYPE_BY_ID[species.id];
+  if (!archetype) return buildStandardFish(c1, c2, c3, scale, species.rarity);
+
+  switch (archetype.type) {
+    case 'lizard':  return buildLizardCreature(c1, c2, c3, scale, archetype.opts);
+    case 'crab':    return buildCrab(c1, c2, c3, scale);
+    case 'squid':   return buildSquid(c1, c2, c3, scale);
+    case 'shark':   return buildShark(c1, c2, c3, scale);
+    case 'serpent': return buildSerpent(c1, c2, c3, scale);
+    default:        return buildStandardFish(c1, c2, c3, scale, species.rarity);
+  }
 }
 
 /* ==========================================================
