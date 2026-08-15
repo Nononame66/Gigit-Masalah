@@ -150,28 +150,74 @@ export function createVoxelRod(rodType = 'rod_wooden') {
 
   let C_ROD = 0x8a5a2b;
   let C_REEL = 0xaab4c0;
+  let C_ACCENT = 0xf2a93b;
 
-  if (rodType === 'rod_bamboo') C_ROD = 0x2e9c5c;
-  if (rodType === 'rod_carbon') C_ROD = 0x3c4657;
-  if (rodType === 'rod_golden') C_ROD = 0xf2a93b;
-  if (rodType === 'rod_cosmic') C_ROD = 0x9d6bf0;
+  if (rodType === 'rod_bamboo') { C_ROD = 0x2e9c5c; C_ACCENT = 0x8bf0b0; }
+  if (rodType === 'rod_carbon') { C_ROD = 0x3c4657; C_ACCENT = 0x64d8e8; }
+  if (rodType === 'rod_golden') { C_ROD = 0xf2a93b; C_ACCENT = 0xfff3c4; C_REEL = 0xffe08a; }
+  if (rodType === 'rod_cosmic') { C_ROD = 0x9d6bf0; C_ACCENT = 0xd9baff; C_REEL = 0xc9a6ff; }
 
-  const handle = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.04, 0.4, 6), getHDMaterial(0x1e293b, 0.4));
-  handle.position.set(0, 0.2, 0);
-  group.add(handle);
+  const isGlow = rodType === 'rod_cosmic';
 
-  const reel = new THREE.Mesh(new THREE.IcosahedronGeometry(0.075, 0), getHDMaterial(C_REEL, 0.3, 0.7));
-  reel.position.set(0, 0.4, 0.06);
-  group.add(reel);
+  /* --- Grip (EVA foam handle, two-tone) --- */
+  const gripLower = new THREE.Mesh(new THREE.CylinderGeometry(0.042, 0.05, 0.26, 8), getHDMaterial(0x1e293b, 0.6));
+  gripLower.position.set(0, 0.13, 0);
+  group.add(gripLower);
+  const gripUpper = new THREE.Mesh(new THREE.CylinderGeometry(0.038, 0.042, 0.22, 8), getHDMaterial(0x334155, 0.6));
+  gripUpper.position.set(0, 0.37, 0);
+  group.add(gripUpper);
+  const buttCap = new THREE.Mesh(new THREE.SphereGeometry(0.05, 6, 5), getHDMaterial(0x0f172a, 0.5));
+  buttCap.position.set(0, 0.01, 0);
+  group.add(buttCap);
 
+  /* --- Reel seat + reel body + crank --- */
+  const reelSeat = new THREE.Mesh(new THREE.BoxGeometry(0.06, 0.14, 0.09), getHDMaterial(0x1e293b, 0.5));
+  reelSeat.position.set(0, 0.42, 0.03);
+  group.add(reelSeat);
+
+  const reelBody = new THREE.Mesh(new THREE.CylinderGeometry(0.085, 0.085, 0.07, 10), getHDMaterial(C_REEL, 0.3, 0.7));
+  reelBody.rotation.x = Math.PI / 2;
+  reelBody.position.set(0, 0.44, 0.09);
+  reelBody.castShadow = true;
+  group.add(reelBody);
+
+  const spool = new THREE.Mesh(new THREE.CylinderGeometry(0.055, 0.055, 0.08, 8), getHDMaterial(0xe2e8f0, 0.4));
+  spool.rotation.x = Math.PI / 2;
+  spool.position.set(0, 0.44, 0.09);
+  group.add(spool);
+
+  const crankArm = new THREE.Mesh(new THREE.BoxGeometry(0.014, 0.09, 0.014), getHDMaterial(C_ACCENT, 0.4, 0.4));
+  crankArm.position.set(0, 0.44, 0.13);
+  group.add(crankArm);
+  const crankKnob = new THREE.Mesh(new THREE.SphereGeometry(0.02, 6, 5), getHDMaterial(0x1e293b, 0.4));
+  crankKnob.position.set(0, 0.485, 0.13);
+  group.add(crankKnob);
+
+  /* --- Tapered rod blank with line guide rings --- */
   const shaft = new THREE.Mesh(
-    new THREE.CylinderGeometry(0.015, 0.035, 2.4, 6),
-    getHDMaterial(C_ROD, 0.35, 0.15, rodType === 'rod_cosmic' ? 0x4c1d95 : 0)
+    new THREE.CylinderGeometry(0.012, 0.032, 2.4, 6),
+    getHDMaterial(C_ROD, 0.35, 0.15, isGlow ? 0x4c1d95 : 0)
   );
   shaft.rotation.x = Math.PI / 4;
   shaft.position.set(0, 1.2, 0.8);
   shaft.castShadow = true;
   group.add(shaft);
+
+  // Line guide rings spaced along the blank
+  const guidePositions = [0.35, 0.75, 1.15, 1.55, 1.9];
+  guidePositions.forEach((t, i) => {
+    const radius = 0.028 - (i / guidePositions.length) * 0.014;
+    const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.006, 4, 8), getHDMaterial(C_ACCENT, 0.3, 0.5));
+    ring.position.set(0, 0.15 + t * Math.cos(Math.PI / 4), t * Math.sin(Math.PI / 4) - 0.05);
+    ring.rotation.x = Math.PI / 2.3;
+    group.add(ring);
+  });
+
+  // Tip guide (bright, marks the very end of the rod)
+  const tipGuide = new THREE.Mesh(new THREE.TorusGeometry(0.02, 0.006, 4, 8), getHDMaterial(C_ACCENT, 0.2, 0.6, isGlow ? 0x7c3aed : 0));
+  tipGuide.position.set(0, 1.95, 1.65);
+  tipGuide.rotation.x = Math.PI / 2.3;
+  group.add(tipGuide);
 
   return group;
 }

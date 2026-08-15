@@ -454,6 +454,10 @@ export class GameEngine {
     audio.playCatchFanfare();
     this.ui.hideReelingMinigame();
 
+    // Special friend challenge: catching either Mythic species is a big deal.
+    this.caughtFish.isChallengeWin =
+      this.caughtFish.id === 'leviathan' || this.caughtFish.id === 'cosmic_dragon';
+
     // Perfect cast bonus
     let xpBonus = 0;
     let coinBonus = 0;

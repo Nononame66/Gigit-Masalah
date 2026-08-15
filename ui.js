@@ -381,6 +381,10 @@ export class UIManager {
     document.getElementById('catch-xp').textContent = `+${fish.xpReward} XP`;
     document.getElementById('catch-desc').textContent = fish.desc;
 
+    const jackpotBanner = document.getElementById('catch-jackpot-banner');
+    jackpotBanner.classList.toggle('hidden', !fish.isChallengeWin);
+    if (fish.isChallengeWin) audio.playCatchFanfare();
+
     const weightStat = document.getElementById('catch-weight-stat');
     const conditionStat = document.getElementById('catch-condition-stat');
 
@@ -404,9 +408,9 @@ export class UIManager {
 
     // Restart the reveal animation every time a new catch is shown.
     const box = modal.querySelector('.modal-box');
-    box.classList.remove('catch-reveal');
+    box.classList.remove('catch-reveal', 'catch-reveal-jackpot');
     void box.offsetWidth; // force reflow so the animation can replay
-    box.classList.add('catch-reveal');
+    box.classList.add(fish.isChallengeWin ? 'catch-reveal-jackpot' : 'catch-reveal');
   }
 
   async renderFish3DPreview(fish) {

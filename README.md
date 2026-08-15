@@ -1,234 +1,85 @@
-🎣 Gigit Masalah
+# 🎣 Gigit Masalah
 
-Game Fishing 3D yang dibuat untuk dimainkan di PC maupun mobile browser.
+Game memancing 3D berbasis browser, terinspirasi dari **Fisch (Roblox)**. Dibuat menggunakan **Three.js** — jalan langsung di browser tanpa install apa pun, bisa dimainkan di PC maupun HP.
 
-🎮 Tentang Game
+**🔗 Main di sini:** https://nononame66.github.io/tes/
 
-Gigit Masalah adalah game mancing 3D bergaya low-poly. Pemain dapat menjelajahi area, memilih pancing dan umpan, melempar kail, mengikuti minigame, dan mendapatkan berbagai macam ikan maupun barang unik.
+---
 
-Game ini dibuat berbasis web sehingga dapat dimainkan langsung melalui browser tanpa perlu menginstal aplikasi.
+## 📖 Tentang Proyek
 
-✨ Fitur
+Proyek ini dibuat untuk memenuhi tugas [isi nama mata pelajaran] dari **[Nama Guru]**.
 
-* 🌊 Dunia 3D
-* 🎣 Sistem casting
-* 🫨 Minigame Shake
-* ⚡ Sistem Bite Alert
-* 🎯 Reeling Minigame
-* 🎒 Inventory
-* 📖 Fishdex
-* 🪙 Sistem Coin
-* ⭐ Sistem XP dan Level
-* 🪱 Berbagai jenis bait/umpan
-* 🎣 Berbagai fishing rod
-* 🤖 Auto Cast
-* 📱 Kontrol mobile
-* 💻 Kontrol PC
-* 💾 Penyimpanan progress menggunakan LocalStorage
-* 🐲 Makhluk langka hingga MYTHIC
+- **Nama:** [Nama Kamu]
+- **Kelas:** [Kelas Kamu]
+- **Sekolah:** [Nama Sekolah]
 
-⸻
+## 🎮 Cara Bermain
 
-🐟 Sistem Tangkapan
+| Kontrol | Aksi |
+|---|---|
+| **WASD** / Joystick kiri bawah | Gerak karakter |
+| **Drag layar/mouse** | Putar kamera |
+| **SPASI** / tombol hijau | Lempar kail, hook ikan, tarik saat reeling |
+| Tombol **SHAKE** | Ketuk berkali-kali saat umpan sudah di air |
 
-Tidak semua hasil memancing berupa ikan. Pemain juga dapat menemukan berbagai barang unik dan tidak terduga.
+**Alur bermain:**
+1. Tekan **LEMPAR KAIL** → tahan sampai bar hijau di zona PERFECT → lepas
+2. Kail jatuh ke air → tekan tombol **SHAKE** berkali-kali
+3. Tunggu sampai muncul **GIGITAN!** → tekan cepat buat hook
+4. Minigame **reeling**: tahan tombol untuk menjaga bar kuning tetap di zona hijau sampai progress penuh
+5. Ikan/barang masuk ke **Tas**, bisa dijual di sana atau langsung dari modal hasil tangkapan
 
-Contohnya:
+## ✨ Fitur
 
-* 🪵 Kayu
-* 🪨 Batu
-* 🩴 Sendal
-* 🧴 Botol
-* 🥫 Kaleng
-* 🛞 Ban
-* 🎩 Barang-barang aneh lainnya
+- Dunia 3D low-poly stylized (pulau tropis, langit gradient, laut animasi)
+- Sistem casting dengan power meter & zona PERFECT
+- Minigame shake + reeling dengan tingkat kesulitan berbeda per rarity ikan
+- 15 spesies ikan (Common → Mythic) + 7 jenis barang sampah dengan nama lucu
+- Sistem Toko: beli & pasang pancingan dan umpan
+- Fishdex (koleksi ikan) & Tas/Inventory barang
+- Preview 3D hasil tangkapan yang berputar, termasuk model custom untuk beberapa ikan langka
+- XP, level, koin, dan progres otomatis tersimpan di perangkat (localStorage)
+- Kontrol lengkap untuk PC (keyboard + mouse) dan mobile (joystick virtual + tap)
 
-Semakin tinggi rarity, semakin sulit mendapatkan tangkapan tersebut.
+## 🏆 Challenge Spesial
 
-⸻
+Coba tangkap salah satu ikan **Mythic** paling langka di game ini:
 
-🏆 🔥 CHALLENGE — MYTHIC HUNT
+- 🐲 **Leviathan Sungai Glitch** — naga air raksasa bersisik kristal ungu-neon
+- 🌌 **Naga Kosmik Bintang** — naga kosmik yang berpendar seperti galaksi
 
-🎯 Tantangan
+Kalau dapat salah satunya, tunjukkan layar hasil tangkapannya buat klaim hadiah **Rp 2.500**! 🎉
 
-Berani mencoba mendapatkan makhluk MYTHIC?
+## 🛠️ Dibuat Dengan
 
-Ada dua makhluk spesial yang menjadi target challenge:
+- **Three.js** (r0.160) — rendering 3D & WebGL
+- **HTML / CSS / JavaScript (ES Modules)** — tanpa framework, tanpa build tool
+- **Web Audio API** — semua efek suara dibuat secara prosedural, tanpa file audio eksternal
+- **localStorage** — sistem simpan progres otomatis
+- Dipublikasikan lewat **GitHub Pages**
 
-🟣 Leviathan Sungai Glitch
+## 🙏 Kredit Model 3D
 
-Naga air raksasa bersisik kristal ungu-neon yang muncul dari glitch sungai.
+Sebagian besar model 3D (karakter, pancingan, dunia, sebagian besar ikan) dibuat sepenuhnya lewat kode (procedural low-poly). Beberapa model ikan langka memakai aset dari Sketchfab dengan lisensi CC-BY-4.0:
 
-Rarity: MYTHIC
-Simbol: 🐲
-Hadiah Challenge: 💰 Rp2.500 uang asli
+- **Kepiting** — "Chitin on Crab" oleh dini.hadiarti — https://sketchfab.com/3d-models/chitin-on-crab-ff42c79384c04271aa97b72f384b304a
+- **Naga Kosmik Bintang** — "Fire dragon minecraft" oleh DPancito — https://sketchfab.com/3d-models/fire-dragon-minecraft-51f9ba01a5ba4a689a51110612db8d5d
+- **Leviathan Sungai Glitch** — "LP Dragon" oleh Liormax — https://sketchfab.com/3d-models/lp-dragon-a97a1fa87bab4ba7b1169fb13f650942
 
-⸻
+## 📂 Struktur Proyek
 
-🌌 Naga Kosmik Bintang
-
-Naga kosmik yang tubuhnya berpendar seperti galaksi dan terlihat seperti membawa cahaya bintang di dalam air.
-
-Rarity: MYTHIC
-Simbol: 🌌
-Hadiah Challenge: 💰 Rp2.500 uang asli
-
-⸻
-
-🥇 TOTAL HADIAH
-
-Jika berhasil mendapatkan keduanya:
-
-🏆 Leviathan Sungai Glitch + Naga Kosmik Bintang
-💰 Total hadiah: Rp5.000 uang asli
-
-📸 Cara mengikuti challenge
-
-1. 🎣 Masuk ke game.
-2. 🪱 Gunakan bait yang tersedia.
-3. 🌊 Lakukan casting.
-4. 🫨 Selesaikan minigame.
-5. ⚡ Saat ikan menggigit, lakukan hook.
-6. 🎯 Selesaikan reeling minigame.
-7. 🐲 Dapatkan salah satu makhluk Mythic.
-8. 📸 Screenshot hasil tangkapan/Fishdex sebagai bukti.
-9. 🏆 Pemain yang memenuhi syarat challenge mendapatkan hadiah sesuai ketentuan.
-
-⚠️ Catatan: Hadiah Rp2.500 adalah hadiah challenge dalam bentuk uang asli. Ketentuan verifikasi dan pemberian hadiah ditentukan oleh penyelenggara challenge.
-
-⸻
-
-🕹️ Kontrol
-
-💻 PC
-
-Tombol	Fungsi
-W A S D	Bergerak
-Mouse	Mengarahkan kamera
-1	Memilih fishing rod
-2	Memilih bait
-3	Toggle Auto Cast
-LEMPAR	Casting
-
-📱 Mobile
-
-Gunakan joystick virtual untuk bergerak dan tombol aksi yang tersedia pada layar.
-
-⸻
-
-🧩 Teknologi
-
-Project ini menggunakan:
-
-* HTML5
-* CSS3
-* JavaScript
-* Three.js
-* Font Awesome
-* LocalStorage
-
-⸻
-
-📁 Struktur Project
-
-tes-main/
-├── index.html
-├── main.js
-├── gameEngine.js
-├── playerController.js
-├── environment.js
-├── modelLoader.js
-├── voxelModels.js
-├── ui.js
-├── storage.js
-├── audio.js
-├── assetLoader.js
-├── style.css
-└── README.md
-
-⸻
-
-▶️ Cara Menjalankan
-
-1. Download atau clone repository.
-2. Buka folder project menggunakan VS Code.
-3. Jalankan menggunakan Live Server.
-4. Buka alamat website yang diberikan.
-5. Game siap dimainkan.
-
-🌐 GitHub Pages
-
-Project dapat di-host menggunakan GitHub Pages.
-
-Langkah umum:
-
-1. Buat repository GitHub.
-2. Upload seluruh file project.
-3. Pastikan index.html berada di folder utama.
-4. Buka Settings → Pages.
-5. Pilih branch utama.
-6. Aktifkan GitHub Pages.
-7. Tunggu proses deployment.
-8. Buka link game yang diberikan GitHub.
-
-⸻
-
-💾 Penyimpanan
-
-Progress game disimpan menggunakan LocalStorage browser.
-
-Data yang dapat disimpan antara lain:
-
-* Coin
-* XP
-* Level
-* Fishing Rod
-* Bait
-* Inventory
-* Fishdex
-* Statistik tangkapan
-
-⚠️ Menghapus data situs/browser dapat menyebabkan progress game ikut terhapus.
-
-⸻
-
-🎓 Tujuan Project
-
-Project ini dibuat sebagai media pembelajaran untuk mengembangkan kemampuan dalam:
-
-* Pemrograman JavaScript
-* Pengembangan game berbasis web
-* 3D rendering
-* Three.js
-* UI/UX game
-* Sistem inventory
-* Sistem rarity dan loot
-* Input keyboard dan touch
-* LocalStorage
-* Game balancing
-
-⸻
-
-🚀 Pengembangan Selanjutnya
-
-Beberapa fitur yang dapat dikembangkan:
-
-* 🌍 Area/map baru
-* 🐉 Lebih banyak makhluk Mythic
-* 🏆 Leaderboard
-* 👥 Multiplayer
-* 🎒 Inventory yang lebih lengkap
-* 🎣 Fishing rod tambahan
-* 🪱 Bait tambahan
-* 🌦️ Sistem cuaca
-* 🌙 Sistem siang dan malam
-* 🎵 Musik dan sound effect
-* 🗺️ Quest
-* 🏅 Achievement
-
-⸻
-
-🎣 Gigit Masalah
-
-Jangan cuma cari ikan. Cari Mythic-nya.
-🐲 MYTHIC HUNT — Berani coba?
+```
+index.html        → struktur halaman & semua modal UI
+style.css          → seluruh tampilan/HUD
+main.js            → entry point, game loop
+environment.js     → dunia 3D (pulau, laut, langit, dermaga)
+playerController.js→ gerak karakter, kamera, kontrol input
+gameEngine.js       → logika inti: casting, shake, bite, reeling, loot table
+ui.js              → interaksi HUD, modal, preview 3D
+voxelModels.js      → semua model 3D low-poly (karakter, ikan, sampah, kail)
+modelLoader.js      → loader opsional untuk model .glb custom
+storage.js         → sistem simpan progres (localStorage)
+audio.js           → semua efek suara (Web Audio API, tanpa file)
+models/             → file 3D custom (.gltf/.glb) untuk ikan langka
+```
