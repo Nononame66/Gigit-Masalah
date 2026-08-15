@@ -4,15 +4,20 @@ Game memancing 3D berbasis browser, terinspirasi dari **Fisch (Roblox)**. Dibuat
 
 **🔗 Main di sini:** https://nononame66.github.io/tes/
 
+
+## 🏆 Challenge Spesial
+
+Coba tangkap salah satu ikan **Mythic** paling langka di game ini:
+
+- 🐲 **Leviathan Sungai Glitch** — naga air raksasa bersisik kristal ungu-neon
+- 🌌 **Naga Kosmik Bintang** — naga kosmik yang berpendar seperti galaksi
+
+Kalau dapat salah satunya, tunjukkan layar hasil tangkapannya buat klaim hadiah **Rp 2.500**! 🎉
+
+Screenshot chat ig@abrisam.listiyo
+
 ---
 
-## 📖 Tentang Proyek
-
-Proyek ini dibuat untuk memenuhi tugas [isi nama mata pelajaran] dari **[Nama Guru]**.
-
-- **Nama:** [Nama Kamu]
-- **Kelas:** [Kelas Kamu]
-- **Sekolah:** [Nama Sekolah]
 
 ## 🎮 Cara Bermain
 
@@ -42,14 +47,7 @@ Proyek ini dibuat untuk memenuhi tugas [isi nama mata pelajaran] dari **[Nama Gu
 - XP, level, koin, dan progres otomatis tersimpan di perangkat (localStorage)
 - Kontrol lengkap untuk PC (keyboard + mouse) dan mobile (joystick virtual + tap)
 
-## 🏆 Challenge Spesial
 
-Coba tangkap salah satu ikan **Mythic** paling langka di game ini:
-
-- 🐲 **Leviathan Sungai Glitch** — naga air raksasa bersisik kristal ungu-neon
-- 🌌 **Naga Kosmik Bintang** — naga kosmik yang berpendar seperti galaksi
-
-Kalau dapat salah satunya, tunjukkan layar hasil tangkapannya buat klaim hadiah **Rp 2.500**! 🎉
 
 ## 🛠️ Dibuat Dengan
 
