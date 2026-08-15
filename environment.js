@@ -14,6 +14,7 @@ import {
   createVoxelPier,
   createVoxelTree
 } from './voxelModels.js';
+import { tryLoadCustomModelFor } from './modelLoader.js';
 
 /* -------- Palette (Low-Poly Stylized Islands) -------- */
 const PALETTE = {
@@ -176,11 +177,30 @@ export class GameEnvironment {
     this.scene.add(this.fishShadow);
   }
 
-  updateRodModel(rodType) {
+  async updateRodModel(rodType) {
     this.currentRodType = rodType;
     while (this.rodGroup.children.length)
       this.rodGroup.remove(this.rodGroup.children[0]);
-    this.rodGroup.add(createVoxelRod(rodType));
+
+    const custom = await tryLoadCustomModelFor(rodType);
+    if (custom) {
+      // Normalize an arbitrary custom model to a sensible "held rod" size,
+      // then anchor its lowest point at the grip origin so it extends
+      // outward like the procedural rod does.
+      const box = new THREE.Box3().setFromObject(custom);
+      const size = new THREE.Vector3();
+      box.getSize(size);
+      const maxDim = Math.max(size.x, size.y, size.z) || 1;
+      const scaleFactor = 2.2 / maxDim;
+      custom.scale.multiplyScalar(scaleFactor);
+
+      const scaledBox = new THREE.Box3().setFromObject(custom);
+      custom.position.set(-scaledBox.min.x, -scaledBox.min.y, -scaledBox.min.z);
+
+      this.rodGroup.add(custom);
+    } else {
+      this.rodGroup.add(createVoxelRod(rodType));
+    }
   }
 
   /* ── Faceted low-poly island, cliffs, hills, trees, rocks ── */
