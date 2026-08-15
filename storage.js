@@ -6,7 +6,7 @@
 const STORAGE_KEY = 'GIGIT_MASALAH_SAVE_V3';
 
 const DEFAULT_STATE = {
-  coins: 500,
+  coins: 495,
   level: 1,
   xp: 0,
   maxXp: 100,
