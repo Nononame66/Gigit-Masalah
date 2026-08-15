@@ -21,6 +21,7 @@ class AudioManager {
       this.setupAmbientWater();
       this.setupAmbientWind();
       this.scheduleAmbientBirds();
+      this.setupBackgroundMusic();
     } catch (e) {
       console.warn('Web Audio API not supported:', e);
     }
@@ -315,6 +316,74 @@ class AudioManager {
     }
   }
 
+  setupBackgroundMusic() {
+    if (!this.ctx) return;
+    this.musicGain = this.ctx.createGain();
+    this.musicGain.gain.value = storage.state.soundEnabled ? 0.12 : 0.0;
+    this.musicGain.connect(this.ctx.destination);
+
+    // Original bouncy, tropical arcade-fishing style loop (triangle bass +
+    // square lead + light shaker) — not a cover of any existing track.
+    const bassNotes = [130.81, 130.81, 164.81, 130.81, 146.83, 146.83, 174.61, 130.81];
+    const melodyNotes = [523.25, 587.33, 659.25, 587.33, 523.25, 659.25, 783.99, 659.25];
+
+    this.musicStep = 0;
+    const stepDuration = 0.28;
+
+    const scheduleStep = () => {
+      if (!this.ctx) return;
+      const now = this.ctx.currentTime;
+      const step = this.musicStep % bassNotes.length;
+
+      const bassOsc = this.ctx.createOscillator();
+      const bassGain = this.ctx.createGain();
+      bassOsc.type = 'triangle';
+      bassOsc.frequency.setValueAtTime(bassNotes[step], now);
+      bassGain.gain.setValueAtTime(0.5, now);
+      bassGain.gain.exponentialRampToValueAtTime(0.001, now + stepDuration * 0.9);
+      bassOsc.connect(bassGain);
+      bassGain.connect(this.musicGain);
+      bassOsc.start(now);
+      bassOsc.stop(now + stepDuration);
+
+      if (step % 2 === 0) {
+        const melOsc = this.ctx.createOscillator();
+        const melGain = this.ctx.createGain();
+        melOsc.type = 'square';
+        melOsc.frequency.setValueAtTime(melodyNotes[step], now);
+        melGain.gain.setValueAtTime(0.16, now);
+        melGain.gain.exponentialRampToValueAtTime(0.001, now + stepDuration * 0.7);
+        melOsc.connect(melGain);
+        melGain.connect(this.musicGain);
+        melOsc.start(now);
+        melOsc.stop(now + stepDuration * 0.7);
+      }
+
+      if (step % 2 === 1) {
+        const noiseBuf = this.ctx.createBuffer(1, Math.floor(this.ctx.sampleRate * 0.03), this.ctx.sampleRate);
+        const data = noiseBuf.getChannelData(0);
+        for (let i = 0; i < data.length; i++) data[i] = (Math.random() * 2 - 1) * 0.3;
+        const noise = this.ctx.createBufferSource();
+        noise.buffer = noiseBuf;
+        const hatFilter = this.ctx.createBiquadFilter();
+        hatFilter.type = 'highpass';
+        hatFilter.frequency.value = 6000;
+        const hatGain = this.ctx.createGain();
+        hatGain.gain.setValueAtTime(0.15, now);
+        hatGain.gain.exponentialRampToValueAtTime(0.001, now + 0.04);
+        noise.connect(hatFilter);
+        hatFilter.connect(hatGain);
+        hatGain.connect(this.musicGain);
+        noise.start(now);
+      }
+
+      this.musicStep++;
+    };
+
+    scheduleStep();
+    this.musicInterval = setInterval(scheduleStep, stepDuration * 1000);
+  }
+
   updateSoundState() {
     const enabled = storage.state.soundEnabled;
     const now = this.ctx ? this.ctx.currentTime : 0;
@@ -323,6 +392,9 @@ class AudioManager {
     }
     if (this.windGain) {
       this.windGain.gain.setValueAtTime(enabled ? 0.015 : 0.0, now);
+    }
+    if (this.musicGain) {
+      this.musicGain.gain.setValueAtTime(enabled ? 0.12 : 0.0, now);
     }
   }
 }
