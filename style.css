@@ -514,3 +514,40 @@ canvas { display: block; width: 100%; height: 100%; }
     .reel-wrap { right: 12px; width: 170px; padding: 12px; }
     .reel-gauge { height: 160px; }
 }
+
+/* Landscape phones with short screen height — the width-based rules above
+   aren't enough here, since the real problem is vertical space, not
+   horizontal. Shrink and reposition everything so the player card,
+   joystick, and equip panel stop overlapping. */
+@media (max-height: 480px) {
+    .hud-player-card { padding: 5px 10px; gap: 6px; top: 6px; left: 6px; }
+    .hud-avatar { width: 32px; height: 32px; }
+    .hud-level-pip { width: 20px; height: 20px; font-size: 10px; bottom: -2px; right: -2px; }
+    .hud-player-name { font-size: 11px; }
+    .hud-location { display: none; }
+    .hud-xp-wrap { margin-top: 1px; }
+    .hud-xp-bar { width: 70px; height: 5px; }
+    .hud-xp-text { font-size: 8px; }
+
+    .hud-top-right { top: 6px; right: 6px; gap: 4px; }
+    .hud-coins { padding: 5px 9px; font-size: 11px; gap: 5px; }
+    .hud-coins i { font-size: 12px; }
+    .hud-icon-btn { width: 26px; height: 26px; font-size: 11px; }
+    .hud-nav-btn { padding: 5px 8px; font-size: 0; gap: 0; } /* icon-only to save width */
+    .hud-nav-btn i { font-size: 13px; }
+
+    .hud-equip { display: none; }
+
+    .hud-action-bar { bottom: 6px; right: 6px; gap: 5px; }
+    .hud-slot { width: 34px; height: 34px; font-size: 13px; }
+    .hud-slot-key { font-size: 8px; }
+    .hud-cast-btn { padding: 8px 14px; font-size: 11px; gap: 6px; }
+
+    .joystick-container { bottom: 6px; left: 6px; width: 78px; height: 78px; }
+    .joystick-stick { width: 32px; height: 32px; margin: -16px 0 0 -16px; }
+
+    .hint-banner { display: none; }
+    .reel-wrap { top: 6px; width: 150px; padding: 8px; }
+    .reel-gauge { height: 120px; }
+    .cast-meter-wrap { top: 40%; width: 260px; }
+}
