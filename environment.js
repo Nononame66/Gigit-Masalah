@@ -15,6 +15,7 @@ import {
   createVoxelTree
 } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
+import { audio } from './audio.js';
 
 /* -------- Palette (Low-Poly Stylized Islands) -------- */
 const PALETTE = {
@@ -74,6 +75,12 @@ export class GameEnvironment {
     this.setupFishingLine();
     this.setupParticles();
     this.setupSplashRing();
+    this.setupRain();
+
+    // Weather cycles randomly between clear and rainy stretches
+    this.isRaining = false;
+    this.weatherTimer = 0;
+    this.nextWeatherCheck = 20;
 
     window.addEventListener('resize', () => this.onWindowResize());
   }
@@ -389,6 +396,30 @@ export class GameEnvironment {
     this.splashRingTimer = 0;
   }
 
+  setupRain() {
+    const count = 260;
+    const positions = new Float32Array(count * 6); // 2 points (top/bottom) per drop
+    this.rainVelocities = new Float32Array(count);
+    this.rainDropCount = count;
+
+    const spawnDrop = (i, freshTop = false) => {
+      const x = (Math.random() - 0.5) * 70;
+      const z = (Math.random() - 0.5) * 70 - 5;
+      const y = freshTop ? 26 + Math.random() * 10 : Math.random() * 34;
+      positions[i * 6]     = x; positions[i * 6 + 1] = y;       positions[i * 6 + 2] = z;
+      positions[i * 6 + 3] = x; positions[i * 6 + 4] = y - 0.6; positions[i * 6 + 5] = z;
+      this.rainVelocities[i] = 14 + Math.random() * 6;
+    };
+    for (let i = 0; i < count; i++) spawnDrop(i);
+
+    const geo = new THREE.BufferGeometry();
+    geo.setAttribute('position', new THREE.BufferAttribute(positions, 3));
+    const mat = new THREE.LineBasicMaterial({ color: 0xbcd9e6, transparent: true, opacity: 0.5 });
+    this.rain = new THREE.LineSegments(geo, mat);
+    this.rain.visible = false;
+    this.scene.add(this.rain);
+  }
+
   triggerSplash(pos) {
     const arr = this.splashParticles.geometry.attributes.position.array;
     for (let i = 0; i < arr.length / 3; i++) {
@@ -443,14 +474,52 @@ export class GameEnvironment {
 
     const skyTop = new THREE.Color().lerpColors(NIGHT_SKY_TOP, DAY_SKY_TOP, this.dayFactor);
     const skyBottom = new THREE.Color().lerpColors(NIGHT_SKY_BOTTOM, DAY_SKY_BOTTOM, this.dayFactor);
-    this.sky.material.uniforms.topColor.value.copy(skyTop);
-    this.sky.material.uniforms.bottomColor.value.copy(skyBottom);
 
     this.scene.fog.color.lerpColors(NIGHT_FOG, DAY_FOG, this.dayFactor);
     this.sun.intensity = 0.35 + this.dayFactor * 1.25;
     this.hemiLight.intensity = 0.35 + this.dayFactor * 0.65;
 
     this.stars.material.opacity = (1 - this.dayFactor) * 0.85;
+
+    // Weather cycling — occasionally starts/stops a rain shower
+    this.weatherTimer += delta;
+    if (this.weatherTimer > this.nextWeatherCheck) {
+      this.weatherTimer = 0;
+      if (this.isRaining) {
+        this.isRaining = Math.random() < 0.35; // chance to keep raining a bit longer
+        this.nextWeatherCheck = this.isRaining ? 20 : 45 + Math.random() * 40;
+      } else {
+        this.isRaining = Math.random() < 0.25;
+        this.nextWeatherCheck = this.isRaining ? 25 + Math.random() * 20 : 45 + Math.random() * 45;
+      }
+      this.rain.visible = this.isRaining;
+      audio.setRainActive(this.isRaining);
+    }
+
+    if (this.isRaining) {
+      skyTop.lerp(new THREE.Color(0x5b6b78), 0.35);
+      skyBottom.lerp(new THREE.Color(0x707d85), 0.3);
+      this.sun.intensity *= 0.55;
+      this.scene.fog.color.lerp(new THREE.Color(0x5b6b78), 0.3);
+
+      const arr = this.rain.geometry.attributes.position.array;
+      for (let i = 0; i < this.rainDropCount; i++) {
+        const vy = this.rainVelocities[i] * delta;
+        arr[i * 6 + 1] -= vy;
+        arr[i * 6 + 4] -= vy;
+        if (arr[i * 6 + 1] < 0) {
+          const x = (Math.random() - 0.5) * 70;
+          const z = (Math.random() - 0.5) * 70 - 5;
+          const y = 26 + Math.random() * 10;
+          arr[i * 6]     = x; arr[i * 6 + 1] = y;       arr[i * 6 + 2] = z;
+          arr[i * 6 + 3] = x; arr[i * 6 + 4] = y - 0.6; arr[i * 6 + 5] = z;
+        }
+      }
+      this.rain.geometry.attributes.position.needsUpdate = true;
+    }
+
+    this.sky.material.uniforms.topColor.value.copy(skyTop);
+    this.sky.material.uniforms.bottomColor.value.copy(skyBottom);
 
     // Water ripple
     const pos = this.waterPositions;

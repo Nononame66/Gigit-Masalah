@@ -22,6 +22,7 @@ class AudioManager {
       this.setupAmbientWind();
       this.scheduleAmbientBirds();
       this.setupBackgroundMusic();
+      this.setupRainSound();
     } catch (e) {
       console.warn('Web Audio API not supported:', e);
     }
@@ -395,6 +396,38 @@ class AudioManager {
     osc.stop(now + 1.9);
   }
 
+  setupRainSound() {
+    if (!this.ctx) return;
+    const bufferSize = this.ctx.sampleRate * 2;
+    const buffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
+    const data = buffer.getChannelData(0);
+    for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
+
+    const noise = this.ctx.createBufferSource();
+    noise.buffer = buffer;
+    noise.loop = true;
+
+    const filter = this.ctx.createBiquadFilter();
+    filter.type = 'highpass';
+    filter.frequency.value = 1400;
+
+    this.rainGain = this.ctx.createGain();
+    this.rainGain.gain.value = 0.0;
+    this.isRainActive = false;
+
+    noise.connect(filter);
+    filter.connect(this.rainGain);
+    this.rainGain.connect(this.ctx.destination);
+    noise.start();
+  }
+
+  setRainActive(active) {
+    this.isRainActive = active;
+    if (!this.rainGain || !this.ctx) return;
+    const target = (active && storage.state.soundEnabled) ? 0.06 : 0.0;
+    this.rainGain.gain.linearRampToValueAtTime(target, this.ctx.currentTime + 1.5);
+  }
+
   updateSoundState() {
     const enabled = storage.state.soundEnabled;
     const now = this.ctx ? this.ctx.currentTime : 0;
@@ -406,6 +439,9 @@ class AudioManager {
     }
     if (this.musicGain) {
       this.musicGain.gain.setValueAtTime(enabled ? 0.09 : 0.0, now);
+    }
+    if (this.rainGain) {
+      this.rainGain.gain.setValueAtTime((this.isRainActive && enabled) ? 0.06 : 0.0, now);
     }
   }
 }
