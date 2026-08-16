@@ -54,7 +54,11 @@ const DEFAULT_STATE = {
     totalJunkCaught: 0,
     totalCoinsEarned: 0
   },
-  soundEnabled: true
+  soundEnabled: true,
+  profile: {
+    name: 'b1sam',
+    avatar: ''
+  }
 };
 
 export class StorageManager {
@@ -82,6 +86,10 @@ export class StorageManager {
           stats: {
             ...DEFAULT_STATE.stats,
             ...(parsed && parsed.stats ? parsed.stats : {})
+          },
+          profile: {
+            ...DEFAULT_STATE.profile,
+            ...(parsed && parsed.profile ? parsed.profile : {})
           }
         };
       }
@@ -278,6 +286,19 @@ export class StorageManager {
     if (entry.count <= 0) delete this.state.inventory[itemId];
     this.save();
     return true;
+  }
+
+  setProfileName(name) {
+    const clean = String(name || '').trim().slice(0, 16);
+    this.state.profile.name = clean || 'b1sam';
+    this.save();
+    return this.state.profile.name;
+  }
+
+  setProfileAvatar(dataUrl) {
+    this.state.profile.avatar = dataUrl || '';
+    this.save();
+    return this.state.profile.avatar;
   }
 
   toggleSound() {
