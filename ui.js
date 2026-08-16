@@ -80,8 +80,6 @@ export class UIManager {
     this.playerLevelEl = document.getElementById('player-level');
     this.xpBarFillEl = document.getElementById('xp-bar-fill');
     this.xpTextEl = document.getElementById('xp-text');
-    this.playerNameEl = document.querySelector('.hud-player-name');
-    this.playerAvatarEl = document.querySelector('.hud-avatar img');
 
     this.castMeterContainer = document.getElementById('cast-meter-container');
     this.castMeterFill = document.getElementById('cast-meter-fill');
@@ -99,7 +97,6 @@ export class UIManager {
     this.castBtnText = document.getElementById('cast-btn-text');
 
     this.setupEventListeners();
-    this.initProfile();
     this.updateHUD();
   }
 
@@ -194,19 +191,6 @@ export class UIManager {
       });
     }
 
-    const playerCard = document.querySelector('.hud-player-card');
-    if (playerCard) playerCard.addEventListener('click', () => this.openProfile());
-    const closeProfile = document.getElementById('btn-close-profile');
-    if (closeProfile) closeProfile.addEventListener('click', () => this.closeModal('modal-profile'));
-    const saveProfile = document.getElementById('btn-save-profile');
-    if (saveProfile) saveProfile.addEventListener('click', () => this.saveProfileFromModal());
-    this.bindAvatarInput('avatar-file', 'login-avatar-preview');
-    this.bindAvatarInput('profile-edit-file', 'profile-avatar-preview');
-    const startBtn = document.getElementById('btn-start-game');
-    if (startBtn) startBtn.addEventListener('click', () => this.startProfile());
-    const loginName = document.getElementById('profile-name-input');
-    if (loginName) loginName.value = storage.state.profile.name || 'b1sam';
-
     document.getElementById('btn-shop').addEventListener('click', () => this.openShop());
     document.getElementById('btn-close-shop').addEventListener('click', () => this.closeModal('modal-shop'));
 
@@ -272,87 +256,6 @@ export class UIManager {
 
     document.getElementById('btn-inventory').addEventListener('click', () => this.openInventory());
     document.getElementById('btn-close-inventory').addEventListener('click', () => this.closeModal('modal-inventory'));
-  }
-
-  initProfile() {
-    const profile = storage.state.profile || { name: 'b1sam', avatar: '' };
-    const login = document.getElementById('profile-login');
-    if (login) {
-      const hasSeen = sessionStorage.getItem('GIGIT_PROFILE_STARTED') === '1';
-      login.classList.toggle('hidden', hasSeen);
-    }
-    this.applyProfile(profile);
-  }
-
-  bindAvatarInput(inputId, previewId) {
-    const input = document.getElementById(inputId);
-    const preview = document.getElementById(previewId);
-    if (!input || !preview) return;
-    input.addEventListener('change', () => {
-      const file = input.files && input.files[0];
-      if (!file || !file.type.startsWith('image/')) return;
-      const reader = new FileReader();
-      reader.onload = () => {
-        const img = new Image();
-        img.onload = () => {
-          const size = 256;
-          const canvas = document.createElement('canvas');
-          canvas.width = size; canvas.height = size;
-          const ctx = canvas.getContext('2d');
-          const scale = Math.max(size / img.width, size / img.height);
-          const w = img.width * scale, h = img.height * scale;
-          ctx.drawImage(img, (size-w)/2, (size-h)/2, w, h);
-          preview.src = canvas.toDataURL('image/jpeg', 0.82);
-        };
-        img.src = reader.result;
-      };
-      reader.readAsDataURL(file);
-    });
-  }
-
-  applyProfile(profile) {
-    const name = profile.name || 'b1sam';
-    const avatar = profile.avatar || 'IMG_1297.jpeg';
-    if (this.playerNameEl) this.playerNameEl.textContent = name;
-    if (this.playerAvatarEl) this.playerAvatarEl.src = avatar;
-    const loginName = document.getElementById('profile-name-input');
-    if (loginName) loginName.value = name;
-    const editName = document.getElementById('profile-edit-name');
-    if (editName) editName.value = name;
-    ['login-avatar-preview','profile-avatar-preview'].forEach(id => { const el=document.getElementById(id); if(el) el.src=avatar; });
-  }
-
-  startProfile() {
-    const name = document.getElementById('profile-name-input')?.value || 'b1sam';
-    const preview = document.getElementById('login-avatar-preview');
-    storage.setProfileName(name);
-    if (preview && preview.src && !preview.src.endsWith('/IMG_1297.jpeg')) storage.setProfileAvatar(preview.src);
-    sessionStorage.setItem('GIGIT_PROFILE_STARTED', '1');
-    this.applyProfile(storage.state.profile);
-    document.getElementById('profile-login')?.classList.add('hidden');
-    audio.playButtonClick();
-  }
-
-  openProfile() {
-    const p = storage.state.profile;
-    document.getElementById('profile-name-display').textContent = p.name || 'b1sam';
-    document.getElementById('profile-level-display').textContent = storage.state.level;
-    document.getElementById('profile-catches').textContent = storage.state.stats.totalCaught || 0;
-    document.getElementById('profile-junk').textContent = storage.state.stats.totalJunkCaught || 0;
-    document.getElementById('profile-coins').textContent = storage.state.coins || 0;
-    document.getElementById('profile-edit-name').value = p.name || 'b1sam';
-    document.getElementById('profile-avatar-preview').src = p.avatar || 'IMG_1297.jpeg';
-    document.getElementById('modal-profile').classList.remove('hidden');
-  }
-
-  saveProfileFromModal() {
-    const name = document.getElementById('profile-edit-name')?.value || 'b1sam';
-    const preview = document.getElementById('profile-avatar-preview');
-    storage.setProfileName(name);
-    if (preview && preview.src) storage.setProfileAvatar(preview.src);
-    this.applyProfile(storage.state.profile);
-    this.closeModal('modal-profile');
-    this.showAlert('Profil berhasil disimpan! 👤', '✅');
   }
 
   isReelInputActive() {

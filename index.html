@@ -6,7 +6,7 @@
   <title>Gigit Masalah</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;700;800;900&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
   <link rel="stylesheet" href="style.css">
   <script type="importmap">
@@ -20,26 +20,6 @@
 </head>
 <body>
 
-  <!-- PROFILE / LOGIN OVERLAY -->
-  <div id="profile-login" class="profile-login">
-    <div class="pixel-login-card">
-      <div class="pixel-brand">GIGIT <span>MASALAH</span></div>
-      <div class="pixel-fish-mark">🎣</div>
-      <h1>SIAPA PEMANCINGNYA?</h1>
-      <p class="login-subtitle">Buat profil lokalmu sebelum mulai mancing.</p>
-      <div class="login-avatar-wrap">
-        <div class="login-avatar-frame"><img id="login-avatar-preview" src="IMG_1297.jpeg" alt="Avatar"></div>
-        <label for="avatar-file" class="avatar-upload-btn">📷 PILIH FOTO</label>
-        <input id="avatar-file" type="file" accept="image/*" hidden>
-      </div>
-      <label class="pixel-label" for="profile-name-input">NAMA PEMANCING</label>
-      <input id="profile-name-input" class="pixel-input" maxlength="16" autocomplete="nickname" placeholder="b1sam">
-      <button id="btn-start-game" class="pixel-primary-btn">🎣 MULAI MANCING</button>
-      <p class="login-note">Profil tersimpan di perangkat ini.</p>
-    </div>
-  </div>
-
-
   <div id="canvas-container"></div>
 
   <div id="ui-overlay">
@@ -49,7 +29,7 @@
     <!-- ╚══════════════════════════════╝ -->
     <div class="hud-player-card">
       <div class="hud-avatar">
-        <img src="IMG_1297.jpeg" alt="avatar">
+        <img src="IMG_1297.jpg" alt="avatar">
         <div class="hud-level-pip"><span id="player-level">1</span></div>
       </div>
       <div class="hud-player-info">
@@ -71,10 +51,10 @@
         <span id="coin-count">100</span>
       </div>
       <button id="btn-sound" class="hud-icon-btn"><i class="fa-solid fa-volume-high"></i></button>
-      <button id="btn-inventory" class="hud-nav-btn">
+      <button id="btn-inventory" class="hud-nav-btn coral">
         <i class="fa-solid fa-bag-shopping"></i><span>Tas</span>
       </button>
-      <button id="btn-progress" class="hud-nav-btn">
+      <button id="btn-progress" class="hud-nav-btn coral">
         <i class="fa-solid fa-bullseye"></i><span>Progres</span>
       </button>
       <button id="btn-fishdex" class="hud-nav-btn cyan">
@@ -195,30 +175,6 @@
   <!-- ═══════════════════════════════════════════
        MODALS
   ═══════════════════════════════════════════ -->
-
-  <!-- Profile Modal -->
-  <div id="modal-profile" class="modal-backdrop hidden">
-    <div class="modal-box profile-box">
-      <div class="modal-header">
-        <h2>🧑‍🎣 Profil Pemancing</h2>
-        <button id="btn-close-profile" class="close-btn">✕</button>
-      </div>
-      <div class="profile-preview">
-        <div class="profile-big-avatar"><img id="profile-avatar-preview" src="IMG_1297.jpeg" alt="Avatar"></div>
-        <div><strong id="profile-name-display">b1sam</strong><span>Lv. <b id="profile-level-display">1</b> Fisher</span></div>
-      </div>
-      <label class="pixel-label" for="profile-edit-name">NAMA</label>
-      <input id="profile-edit-name" class="pixel-input" maxlength="16">
-      <label for="profile-edit-file" class="pixel-secondary-btn">📷 Ganti Foto dari Galeri</label>
-      <input id="profile-edit-file" type="file" accept="image/*" hidden>
-      <div class="profile-stats-grid">
-        <div><b id="profile-catches">0</b><span>Tangkapan</span></div>
-        <div><b id="profile-junk">0</b><span>Sampah</span></div>
-        <div><b id="profile-coins">0</b><span>Koin</span></div>
-      </div>
-      <button id="btn-save-profile" class="hd-nav-btn gold wide">💾 Simpan Profil</button>
-    </div>
-  </div>
 
   <!-- Catch Modal -->
   <div id="modal-catch" class="modal-backdrop hidden">
