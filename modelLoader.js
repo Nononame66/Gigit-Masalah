@@ -35,12 +35,9 @@ export const CUSTOM_MODEL_PATHS = {
   // https://sketchfab.com/3d-models/lp-dragon-a97a1fa87bab4ba7b1169fb13f650942
   leviathan: 'models/leviathan/scene.gltf',
 
-  // "Fishing Rods" by SymetrikGames, CC-BY-4.0
+  // "Fishing Rods" by SymetrikGames (kept for reference — the file bundles
+  // multiple rods together, so it's not wired up as a single rod for now)
   // https://sketchfab.com/3d-models/fishing-rods-9ff2c7144654452e97531dbe1154ebb2
-  rod_wooden: 'models/fishing_rods/scene.gltf',
-  rod_bamboo: 'models/fishing_rods/scene.gltf',
-  rod_carbon: 'models/fishing_rods/scene.gltf',
-  rod_golden: 'models/fishing_rods/scene.gltf',
 
   // "Stylized Old Fishing Rod Low Poly" by alexi.smnd, CC-BY-4.0
   // https://sketchfab.com/3d-models/stylized-old-fishing-rod-low-poly-82973c905293422b8c47e0bf82170757
