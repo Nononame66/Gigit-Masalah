@@ -47,17 +47,30 @@ function init() {
   // 7. Start loop
   requestAnimationFrame(animate);
 
-  // 8. Show the friend-challenge popup a moment after load
+  // 8. First-time profile setup, then the friend-challenge popup
   const challengeModal = document.getElementById('modal-challenge');
-  if (challengeModal) {
-    setTimeout(() => challengeModal.classList.remove('hidden'), 700);
+  const showChallenge = () => {
+    if (!challengeModal) return;
+    setTimeout(() => challengeModal.classList.remove('hidden'), 500);
+  };
 
+  if (challengeModal) {
     const closeChallenge = () => challengeModal.classList.add('hidden');
     document.getElementById('btn-close-challenge')?.addEventListener('click', closeChallenge);
     document.getElementById('btn-challenge-ok')?.addEventListener('click', closeChallenge);
     challengeModal.addEventListener('click', (e) => {
       if (e.target === challengeModal) closeChallenge();
     });
+  }
+
+  if (!storage.hasProfile()) {
+    setTimeout(() => {
+      ui.openProfileSetup();
+      document.getElementById('btn-save-profile')?.addEventListener('click', showChallenge, { once: true });
+    }, 500);
+  } else {
+    ui.showAlert(`Selamat datang lagi, ${storage.state.playerName}! 🎣`, '👋');
+    showChallenge();
   }
 }
 

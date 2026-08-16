@@ -28,12 +28,15 @@
     <!-- ║  TOP-LEFT: Player card       ║ -->
     <!-- ╚══════════════════════════════╝ -->
     <div class="hud-player-card">
-      <div class="hud-avatar">
-        <img src="IMG_1297.jpg" alt="avatar">
+      <div id="hud-avatar-btn" class="hud-avatar" title="Edit Profil">
+        <img id="hud-avatar-img" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b2836'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%234FD1C5'/%3E%3Cellipse cx='32' cy='54' rx='20' ry='16' fill='%234FD1C5'/%3E%3C/svg%3E" alt="avatar">
+        <svg class="avatar-pixel-frame" viewBox="0 0 16 16" shape-rendering="crispEdges" xmlns="http://www.w3.org/2000/svg">
+          <rect x="0" y="0" width="1" height="1" fill="#FFD700"/><rect x="1" y="0" width="1" height="1" fill="#FFD700"/><rect x="2" y="0" width="1" height="1" fill="#FFD700"/><rect x="3" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="4" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="5" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="6" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="7" y="0" width="1" height="1" fill="#FFD700"/><rect x="8" y="0" width="1" height="1" fill="#FFD700"/><rect x="9" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="10" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="11" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="12" y="0" width="1" height="1" fill="#4FD1C5"/><rect x="13" y="0" width="1" height="1" fill="#FFD700"/><rect x="14" y="0" width="1" height="1" fill="#FFD700"/><rect x="15" y="0" width="1" height="1" fill="#FFD700"/><rect x="0" y="1" width="1" height="1" fill="#FFD700"/><rect x="15" y="1" width="1" height="1" fill="#FFD700"/><rect x="0" y="2" width="1" height="1" fill="#FFD700"/><rect x="15" y="2" width="1" height="1" fill="#FFD700"/><rect x="0" y="3" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="3" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="4" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="4" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="5" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="5" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="6" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="6" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="7" width="1" height="1" fill="#FFD700"/><rect x="15" y="7" width="1" height="1" fill="#FFD700"/><rect x="0" y="8" width="1" height="1" fill="#FFD700"/><rect x="15" y="8" width="1" height="1" fill="#FFD700"/><rect x="0" y="9" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="9" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="10" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="10" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="11" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="11" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="12" width="1" height="1" fill="#4FD1C5"/><rect x="15" y="12" width="1" height="1" fill="#4FD1C5"/><rect x="0" y="13" width="1" height="1" fill="#FFD700"/><rect x="15" y="13" width="1" height="1" fill="#FFD700"/><rect x="0" y="14" width="1" height="1" fill="#FFD700"/><rect x="15" y="14" width="1" height="1" fill="#FFD700"/><rect x="0" y="15" width="1" height="1" fill="#FFD700"/><rect x="1" y="15" width="1" height="1" fill="#FFD700"/><rect x="2" y="15" width="1" height="1" fill="#FFD700"/><rect x="3" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="4" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="5" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="6" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="7" y="15" width="1" height="1" fill="#FFD700"/><rect x="8" y="15" width="1" height="1" fill="#FFD700"/><rect x="9" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="10" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="11" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="12" y="15" width="1" height="1" fill="#4FD1C5"/><rect x="13" y="15" width="1" height="1" fill="#FFD700"/><rect x="14" y="15" width="1" height="1" fill="#FFD700"/><rect x="15" y="15" width="1" height="1" fill="#FFD700"/>
+        </svg>
         <div class="hud-level-pip"><span id="player-level">1</span></div>
       </div>
       <div class="hud-player-info">
-        <div class="hud-player-name">b1sam</div>
+        <div id="hud-player-name" class="hud-player-name">Pemancing</div>
         <div class="hud-location"><i class="fa-solid fa-map-pin"></i> Lizard Cove</div>
         <div class="hud-xp-wrap">
           <div class="hud-xp-bar"><div id="xp-bar-fill" class="hud-xp-fill"></div></div>
@@ -273,6 +276,30 @@
       </div>
       <div id="inventory-list" class="inventory-list"></div>
       <div id="inventory-empty" class="inventory-empty hidden">Tas kamu masih kosong. Yuk mancing dulu!</div>
+    </div>
+  </div>
+
+  <!-- Profile Setup Modal -->
+  <div id="modal-profile" class="modal-backdrop hidden">
+    <div class="modal-box profile-box">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-user-pen"></i> Setup Profil</h2>
+        <button id="btn-close-profile" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="profile-avatar-picker">
+        <label for="profile-photo-input" class="profile-avatar-preview">
+          <img id="profile-photo-preview" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' fill='%230b2836'/%3E%3Ccircle cx='32' cy='24' r='12' fill='%234FD1C5'/%3E%3Cellipse cx='32' cy='54' rx='20' ry='16' fill='%234FD1C5'/%3E%3C/svg%3E" alt="preview">
+          <div class="profile-avatar-edit-badge"><i class="fa-solid fa-camera"></i></div>
+        </label>
+        <input type="file" id="profile-photo-input" accept="image/*" class="hidden">
+        <p class="profile-avatar-hint">Ketuk buat pilih foto dari galeri</p>
+      </div>
+
+      <label class="profile-name-label" for="profile-name-input">Nama Pemancing</label>
+      <input type="text" id="profile-name-input" class="profile-name-input" maxlength="16" placeholder="Masukkan nama kamu">
+
+      <button id="btn-save-profile" class="hd-nav-btn gold wide">Simpan &amp; Mulai Main</button>
     </div>
   </div>
 

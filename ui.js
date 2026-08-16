@@ -191,6 +191,40 @@ export class UIManager {
       });
     }
 
+    document.getElementById('hud-avatar-btn').addEventListener('click', () => this.openProfileSetup());
+    document.getElementById('btn-close-profile').addEventListener('click', () => this.closeModal('modal-profile'));
+
+    const photoInput = document.getElementById('profile-photo-input');
+    photoInput.addEventListener('change', async (e) => {
+      const file = e.target.files && e.target.files[0];
+      if (!file) return;
+      try {
+        const dataUrl = await this.resizeImageToDataURL(file, 200);
+        document.getElementById('profile-photo-preview').src = dataUrl;
+        this._pendingAvatar = dataUrl;
+      } catch (err) {
+        console.error('Failed to process photo:', err);
+      }
+    });
+
+    document.getElementById('btn-save-profile').addEventListener('click', () => {
+      const nameInput = document.getElementById('profile-name-input');
+      const name = nameInput.value.trim();
+      if (!name) {
+        nameInput.focus();
+        return;
+      }
+      const wasFirstTime = !storage.hasProfile();
+      storage.setProfile(name, this._pendingAvatar || null);
+      this._pendingAvatar = null;
+      audio.playButtonClick();
+      this.updateHUD();
+      this.closeModal('modal-profile');
+      if (!wasFirstTime) {
+        this.showAlert(`Profil diperbarui! Halo, ${storage.state.playerName}! 👋`, '✅');
+      }
+    });
+
     document.getElementById('btn-shop').addEventListener('click', () => this.openShop());
     document.getElementById('btn-close-shop').addEventListener('click', () => this.closeModal('modal-shop'));
 
@@ -336,6 +370,11 @@ export class UIManager {
   updateHUD() {
     this.coinCountEl.textContent = storage.state.coins;
     this.playerLevelEl.textContent = storage.state.level;
+
+    const nameEl = document.getElementById('hud-player-name');
+    if (nameEl) nameEl.textContent = storage.state.playerName || 'Pemancing';
+    const avatarImg = document.getElementById('hud-avatar-img');
+    if (avatarImg && storage.state.playerAvatar) avatarImg.src = storage.state.playerAvatar;
 
     const xpPercent = Math.min(100, (storage.state.xp / storage.state.maxXp) * 100);
     this.xpBarFillEl.style.width = `${xpPercent}%`;
@@ -692,6 +731,43 @@ export class UIManager {
       `${maxOverallWeight} kg`;
 
     document.getElementById('modal-fishdex').classList.remove('hidden');
+  }
+
+  openProfileSetup() {
+    audio.playButtonClick();
+    const nameInput = document.getElementById('profile-name-input');
+    const preview = document.getElementById('profile-photo-preview');
+    nameInput.value = storage.state.playerName || '';
+    if (storage.state.playerAvatar) preview.src = storage.state.playerAvatar;
+    this._pendingAvatar = null;
+    document.getElementById('modal-profile').classList.remove('hidden');
+  }
+
+  resizeImageToDataURL(file, size = 200) {
+    return new Promise((resolve, reject) => {
+      const img = new Image();
+      const objectUrl = URL.createObjectURL(file);
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        canvas.width = size;
+        canvas.height = size;
+        const ctx = canvas.getContext('2d');
+
+        // Center-crop to a square before scaling down
+        const minSide = Math.min(img.width, img.height);
+        const sx = (img.width - minSide) / 2;
+        const sy = (img.height - minSide) / 2;
+        ctx.drawImage(img, sx, sy, minSide, minSide, 0, 0, size, size);
+
+        URL.revokeObjectURL(objectUrl);
+        resolve(canvas.toDataURL('image/jpeg', 0.85));
+      };
+      img.onerror = (err) => {
+        URL.revokeObjectURL(objectUrl);
+        reject(err);
+      };
+      img.src = objectUrl;
+    });
   }
 
   closeModal(modalId) {

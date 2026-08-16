@@ -54,7 +54,9 @@ const DEFAULT_STATE = {
     totalJunkCaught: 0,
     totalCoinsEarned: 0
   },
-  soundEnabled: true
+  soundEnabled: true,
+  playerName: null,
+  playerAvatar: null
 };
 
 export class StorageManager {
@@ -245,6 +247,16 @@ export class StorageManager {
     } catch (e) {
       console.error('Failed to reset progress:', e);
     }
+  }
+
+  setProfile(name, avatarDataUrl) {
+    this.state.playerName = (name || '').trim().slice(0, 16) || 'Pemancing';
+    if (avatarDataUrl) this.state.playerAvatar = avatarDataUrl;
+    this.save();
+  }
+
+  hasProfile() {
+    return !!this.state.playerName;
   }
 
   addToInventory(item) {
