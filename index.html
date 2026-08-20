@@ -22,6 +22,123 @@
 
   <div id="canvas-container"></div>
 
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║  MAIN MENU / START SCREEN    ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div id="screen-mainmenu" class="fullscreen-menu">
+    <div class="menu-card">
+      <div class="menu-logo">
+        <div class="menu-logo-icon">🎣</div>
+        <h1 class="menu-title">Gigit Masalah</h1>
+        <p class="menu-subtitle">Game Memancing 3D Bertema Kadal</p>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-menu-start" class="menu-btn primary">
+          <i class="fa-solid fa-play"></i> <span id="btn-menu-start-label">MULAI</span>
+        </button>
+        <button id="btn-menu-settings" class="menu-btn">
+          <i class="fa-solid fa-gear"></i> Pengaturan
+        </button>
+        <button id="btn-menu-credits" class="menu-btn">
+          <i class="fa-solid fa-heart"></i> Kredit
+        </button>
+        <button id="btn-menu-quit" class="menu-btn subtle">
+          <i class="fa-solid fa-door-open"></i> Keluar
+        </button>
+      </div>
+      <p class="menu-footer">Dibuat dengan Three.js · Sekolah Project</p>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║  PAUSE MENU                  ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div id="screen-pausemenu" class="fullscreen-menu hidden">
+    <div class="menu-card">
+      <div class="menu-logo">
+        <div class="menu-logo-icon">⏸️</div>
+        <h1 class="menu-title" style="font-size:26px;">Jeda</h1>
+      </div>
+      <div class="menu-buttons">
+        <button id="btn-pause-resume" class="menu-btn primary">
+          <i class="fa-solid fa-play"></i> Lanjutkan
+        </button>
+        <button id="btn-pause-settings" class="menu-btn">
+          <i class="fa-solid fa-gear"></i> Pengaturan
+        </button>
+        <button id="btn-pause-credits" class="menu-btn">
+          <i class="fa-solid fa-heart"></i> Kredit
+        </button>
+        <button id="btn-pause-restart" class="menu-btn subtle">
+          <i class="fa-solid fa-rotate-right"></i> Restart
+        </button>
+        <button id="btn-pause-mainmenu" class="menu-btn subtle">
+          <i class="fa-solid fa-house"></i> Menu Utama
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║  SETTINGS PANEL (shared)     ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div id="modal-settings" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-gear"></i> Pengaturan</h2>
+        <button id="btn-close-settings" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+
+      <div class="settings-row">
+        <span>🔊 Audio (Musik &amp; Efek Suara)</span>
+        <button id="settings-toggle-sound" class="settings-toggle">ON</button>
+      </div>
+
+      <div class="settings-row">
+        <span>🖼️ Kualitas Grafis</span>
+        <div class="settings-segmented">
+          <button id="settings-quality-high" class="settings-seg-btn active">Tinggi</button>
+          <button id="settings-quality-low" class="settings-seg-btn">Rendah</button>
+        </div>
+      </div>
+
+      <div class="settings-info-block">
+        <strong>🎮 Kontrol</strong>
+        <p>PC: WASD gerak · drag mouse kamera · SPASI lempar/tarik<br>
+           HP: Joystick kiri gerak · geser layar kamera · tombol hijau lempar/tarik</p>
+      </div>
+
+      <div class="settings-info-block">
+        <strong>🌐 Bahasa</strong>
+        <p>Bahasa Indonesia</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ╔══════════════════════════════╗ -->
+  <!-- ║  CREDITS PANEL (shared)      ║ -->
+  <!-- ╚══════════════════════════════╝ -->
+  <div id="modal-credits" class="modal-backdrop hidden">
+    <div class="modal-box">
+      <div class="modal-header">
+        <h2><i class="fa-solid fa-heart"></i> Kredit</h2>
+        <button id="btn-close-credits" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
+      </div>
+      <div class="credits-list">
+        <p><strong>Dibuat oleh:</strong> b1sam / abrisam.listiyo</p>
+        <p><strong>Engine:</strong> Three.js, Web Audio API</p>
+        <p class="credits-divider">Model 3D pihak ketiga (CC-BY-4.0):</p>
+        <p>• "Fishing Rods" — SymetrikGames</p>
+        <p>• "Stylized Old Fishing Rod Low Poly" — alexi.smnd</p>
+        <p>• "Chitin on Crab" — dini.hadiarti</p>
+        <p>• "Fire dragon minecraft" — DPancito</p>
+        <p>• "LP Dragon" — Liormax</p>
+        <p>• "Low Poly, Pixel art character" — iTalbone</p>
+        <p class="credits-divider">Terima kasih sudah bermain! 🎣</p>
+      </div>
+    </div>
+  </div>
+
   <div id="ui-overlay">
 
     <!-- ╔══════════════════════════════╗ -->
@@ -51,6 +168,7 @@
         <span id="coin-count">100</span>
       </div>
       <button id="btn-sound" class="hud-icon-btn"><i class="fa-solid fa-volume-high"></i></button>
+      <button id="btn-pause" class="hud-icon-btn"><i class="fa-solid fa-pause"></i></button>
       <button id="btn-inventory" class="hud-nav-btn coral">
         <i class="fa-solid fa-bag-shopping"></i><span>Tas</span>
       </button>

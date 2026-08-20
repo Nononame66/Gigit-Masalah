@@ -32,8 +32,8 @@ const MISSION_TEMPLATES = [
 ];
 
 const DEFAULT_STATE = {
-  coins: 489,
-  level: 1,
+  coins: 5000,
+  level: 99,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
@@ -55,6 +55,7 @@ const DEFAULT_STATE = {
     totalCoinsEarned: 0
   },
   soundEnabled: true,
+  graphicsQuality: 'high',
   playerName: null,
   playerAvatar: null
 };
@@ -259,6 +260,11 @@ export class StorageManager {
     return !!this.state.playerName;
   }
 
+  setGraphicsQuality(quality) {
+    this.state.graphicsQuality = quality === 'low' ? 'low' : 'high';
+    this.save();
+  }
+
   addToInventory(item) {
     const key = item.id;
     if (!key) return;
@@ -296,6 +302,12 @@ export class StorageManager {
     this.state.soundEnabled = !this.state.soundEnabled;
     this.save();
     return this.state.soundEnabled;
+  }
+
+  setGraphicsQuality(quality) {
+    this.state.graphicsQuality = quality === 'low' ? 'low' : 'high';
+    this.save();
+    return this.state.graphicsQuality;
   }
 }
 

@@ -16,6 +16,7 @@ import {
 } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
 import { audio } from './audio.js';
+import { storage } from './storage.js';
 
 /* -------- Palette (Low-Poly Stylized Islands) -------- */
 const PALETTE = {
@@ -50,14 +51,17 @@ export class GameEnvironment {
       45, window.innerWidth / window.innerHeight, 0.1, 1000
     );
 
-    this.renderer = new THREE.WebGLRenderer({ antialias: true, powerPreference: 'high-performance' });
+    const isLowGraphics = storage.state.graphicsQuality === 'low';
+
+    this.renderer = new THREE.WebGLRenderer({ antialias: !isLowGraphics, powerPreference: 'high-performance' });
     this.renderer.setSize(window.innerWidth, window.innerHeight);
-    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLowGraphics ? 1 : 2));
     this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
     this.renderer.toneMappingExposure = 1.1;
-    this.renderer.shadowMap.enabled = true;
+    this.renderer.shadowMap.enabled = !isLowGraphics;
     this.renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     this.container.appendChild(this.renderer.domElement);
+    this.isLowGraphics = isLowGraphics;
 
     // Day/night cycle state — a full loop takes dayCycleDuration seconds.
     // Starts partway into "day" so the world looks normal immediately.
@@ -479,21 +483,23 @@ export class GameEnvironment {
     this.sun.intensity = 0.35 + this.dayFactor * 1.25;
     this.hemiLight.intensity = 0.35 + this.dayFactor * 0.65;
 
-    this.stars.material.opacity = (1 - this.dayFactor) * 0.85;
+    this.stars.material.opacity = this.isLowGraphics ? 0 : (1 - this.dayFactor) * 0.85;
 
-    // Weather cycling — occasionally starts/stops a rain shower
-    this.weatherTimer += delta;
-    if (this.weatherTimer > this.nextWeatherCheck) {
-      this.weatherTimer = 0;
-      if (this.isRaining) {
-        this.isRaining = Math.random() < 0.35; // chance to keep raining a bit longer
-        this.nextWeatherCheck = this.isRaining ? 20 : 45 + Math.random() * 40;
-      } else {
-        this.isRaining = Math.random() < 0.25;
-        this.nextWeatherCheck = this.isRaining ? 25 + Math.random() * 20 : 45 + Math.random() * 45;
+    // Weather cycling — occasionally starts/stops a rain shower (skipped on low graphics)
+    if (!this.isLowGraphics) {
+      this.weatherTimer += delta;
+      if (this.weatherTimer > this.nextWeatherCheck) {
+        this.weatherTimer = 0;
+        if (this.isRaining) {
+          this.isRaining = Math.random() < 0.35; // chance to keep raining a bit longer
+          this.nextWeatherCheck = this.isRaining ? 20 : 45 + Math.random() * 40;
+        } else {
+          this.isRaining = Math.random() < 0.25;
+          this.nextWeatherCheck = this.isRaining ? 25 + Math.random() * 20 : 45 + Math.random() * 45;
+        }
+        this.rain.visible = this.isRaining;
+        audio.setRainActive(this.isRaining);
       }
-      this.rain.visible = this.isRaining;
-      audio.setRainActive(this.isRaining);
     }
 
     if (this.isRaining) {
@@ -569,6 +575,19 @@ export class GameEnvironment {
   }
 
   render() { this.renderer.render(this.scene, this.camera); }
+
+  setGraphicsQuality(quality) {
+    const isLow = quality === 'low';
+    this.isLowGraphics = isLow;
+    this.renderer.shadowMap.enabled = !isLow;
+    this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLow ? 1 : 2));
+    if (isLow) {
+      this.isRaining = false;
+      this.rain.visible = false;
+      audio.setRainActive(false);
+      this.stars.material.opacity = 0;
+    }
+  }
 
   onWindowResize() {
     this.camera.aspect = window.innerWidth / window.innerHeight;
