@@ -585,6 +585,17 @@ canvas { display: block; width: 100%; height: 100%; }
     .reel-wrap { top: 6px; width: 150px; padding: 8px; }
     .reel-gauge { height: 120px; }
     .cast-meter-wrap { top: 40%; width: 260px; }
+
+    /* Main Menu / Pause Menu also need to shrink in landscape */
+    .menu-card { padding: 16px 20px; border-radius: 20px 10px 20px 10px; max-height: 94vh; }
+    .menu-logo { margin-bottom: 10px; }
+    .menu-logo-icon { font-size: 26px; margin-bottom: 2px; }
+    .menu-title { font-size: 20px; }
+    .menu-subtitle { font-size: 9px; margin-top: 2px; }
+    .menu-buttons { gap: 6px; }
+    .menu-btn { padding: 8px 12px; font-size: 11px; border-radius: 12px 6px 12px 6px; gap: 6px; }
+    .menu-btn.primary { font-size: 12px; padding: 9px 12px; }
+    .menu-footer { margin-top: 8px; font-size: 8px; }
 }
 
 /* Profile Setup modal */
@@ -626,7 +637,7 @@ canvas { display: block; width: 100%; height: 100%; }
 /* Settings/Credits must render above both Main Menu and Pause Menu */
 #modal-settings, #modal-credits { z-index: 600; }
 .menu-card {
-    width: 100%; max-width: 380px; text-align: center;
+    width: 100%; max-width: 380px; max-height: 92vh; overflow-y: auto; text-align: center;
     background: linear-gradient(160deg, rgba(9,33,45,0.98), rgba(16,54,71,0.98));
     border-radius: 30px 14px 30px 14px; border: 3px solid rgba(79,209,197,0.4);
     padding: 34px 28px; box-shadow: 0 30px 80px rgba(0,0,0,0.7);
