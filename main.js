@@ -53,7 +53,63 @@ function init() {
 
   // 8. Menus (Main Menu, Pause Menu, shared Settings/Credits)
   setupMenus();
+  setupIntroDialog();
   setupTutorial();
+}
+
+/* -------- NPC Intro Dialog (shown once, first time playing) --------
+   "Nelayan Tua" gives a short flavor-text intro with a branching choice.
+   Purely cosmetic — the choice only changes which line plays next, it
+   never affects gameplay/stats. */
+const NPC_DIALOG_LINES = {
+  intro: 'Woi, anak muda! Selamat datang di Lizard Cove. Katanya di sungai sini ada legenda seekor kadal raksasa yang belum pernah berhasil ditangkap siapa pun... Mau dengar ceritanya?',
+  yes: 'Konon namanya "Leviathan" — bersisik kristal ungu-neon, cuma nongol pas malam gelap gulita. Entah itu cerita bohong atau beneran... coba aja buktiin sendiri, Nak!',
+  no: 'Hahaha, dasar nggak sabaran! Yaudah, langsung aja turun ke dermaga sana, umpanmu udah nunggu tuh.'
+};
+let introDialogOnComplete = null;
+
+function setupIntroDialog() {
+  const modal = document.getElementById('modal-npc-dialog');
+  if (!modal) return;
+
+  const textEl = document.getElementById('dialog-npc-text');
+  const choicesEl = document.getElementById('dialog-npc-choices');
+  const continueWrap = document.getElementById('dialog-npc-continue');
+  const continueBtn = document.getElementById('btn-dialog-continue');
+
+  const finishDialog = () => {
+    storage.markIntroDialogSeen();
+    modal.classList.add('hidden');
+    audio.playButtonClick();
+    const cb = introDialogOnComplete;
+    introDialogOnComplete = null;
+    if (cb) cb();
+  };
+
+  choicesEl?.querySelectorAll('.dialog-choice-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      audio.playButtonClick();
+      textEl.textContent = NPC_DIALOG_LINES[btn.dataset.choice] || NPC_DIALOG_LINES.no;
+      choicesEl.classList.add('hidden');
+      continueWrap.classList.remove('hidden');
+    });
+  });
+
+  continueBtn?.addEventListener('click', finishDialog);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) finishDialog();
+  });
+}
+
+function openIntroDialog(onComplete) {
+  const modal = document.getElementById('modal-npc-dialog');
+  if (!modal) { if (onComplete) onComplete(); return; }
+
+  document.getElementById('dialog-npc-text').textContent = NPC_DIALOG_LINES.intro;
+  document.getElementById('dialog-npc-choices').classList.remove('hidden');
+  document.getElementById('dialog-npc-continue').classList.add('hidden');
+  introDialogOnComplete = onComplete;
+  modal.classList.remove('hidden');
 }
 
 /* -------- Tutorial / Onboarding (shown once, first time playing) -------- */
@@ -158,10 +214,19 @@ function setupMenus() {
   const enterGame = () => {
     mainMenu.classList.add('hidden');
     gamePaused = false;
-    if (!storage.hasSeenTutorial()) {
-      openTutorial(() => startGameFlow());
+
+    const afterIntroDialog = () => {
+      if (!storage.hasSeenTutorial()) {
+        openTutorial(() => startGameFlow());
+      } else {
+        startGameFlow();
+      }
+    };
+
+    if (!storage.hasSeenIntroDialog()) {
+      openIntroDialog(afterIntroDialog);
     } else {
-      startGameFlow();
+      afterIntroDialog();
     }
   };
   document.getElementById('btn-menu-start')?.addEventListener('click', enterGame);

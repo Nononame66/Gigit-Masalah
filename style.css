@@ -534,6 +534,25 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 .reset-link:hover { color: #ef4444; }
 
+/* Leaderboard tab (Progress modal) */
+.leaderboard-hint {
+    font-size: 11px; color: rgba(255,255,255,0.55); margin-bottom: 12px;
+    display: flex; align-items: center; gap: 6px;
+}
+.leaderboard-list { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
+.leaderboard-row {
+    display: flex; align-items: center; gap: 12px;
+    padding: 10px 14px; border-radius: 14px;
+    background: rgba(255,255,255,0.04); border: 2px solid rgba(255,255,255,0.08);
+    font-size: 13px;
+}
+.leaderboard-rank { width: 30px; text-align: center; font-weight: 800; font-size: 15px; flex-shrink: 0; }
+.leaderboard-name { flex: 1; font-weight: 700; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.leaderboard-score { font-weight: 800; color: #4FD1C5; white-space: nowrap; }
+.leaderboard-row.me { border-color: #FFD700; background: rgba(255,215,0,0.1); }
+.leaderboard-row.me .leaderboard-name,
+.leaderboard-row.me .leaderboard-score { color: #FFD700; }
+
 /* Challenge announcement modal */
 .challenge-text { font-size: 14px; color: rgba(255,255,255,0.85); margin-bottom: 14px; line-height: 1.5; }
 .challenge-fish-list { display: flex; flex-direction: column; gap: 10px; margin-bottom: 16px; }
@@ -577,6 +596,25 @@ canvas { display: block; width: 100%; height: 100%; }
     transition: background 0.2s ease, transform 0.2s ease;
 }
 .tutorial-dot.active { background: #4FD1C5; transform: scale(1.3); }
+
+/* NPC Intro Dialog (Nelayan Tua) */
+.dialog-box { text-align: center; }
+.dialog-npc-header { display: flex; flex-direction: column; align-items: center; gap: 6px; margin-bottom: 14px; }
+.dialog-npc-avatar {
+    width: 64px; height: 64px; border-radius: 50%;
+    background: linear-gradient(135deg, rgba(79,209,197,0.25), rgba(79,209,197,0.08));
+    border: 3px solid rgba(79,209,197,0.5);
+    display: flex; align-items: center; justify-content: center; font-size: 32px;
+}
+.dialog-npc-name { font-family: var(--font-display); font-size: 16px; font-weight: 700; color: #4FD1C5; }
+.dialog-npc-text {
+    font-size: 14px; color: rgba(255,255,255,0.9); line-height: 1.65;
+    background: rgba(0,0,0,0.28); border-radius: 16px; padding: 16px 18px;
+    margin-bottom: 18px; min-height: 92px;
+    display: flex; align-items: center; justify-content: center;
+    text-align: left;
+}
+.dialog-npc-choices { display: flex; flex-direction: column; gap: 10px; }
 
 /* Scrollbars */
 .modal-box::-webkit-scrollbar { width: 6px; }

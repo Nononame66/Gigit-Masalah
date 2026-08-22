@@ -374,6 +374,7 @@
       <div class="shop-tabs">
         <button class="progress-tab active" data-tab="mission">🎯 Misi Harian</button>
         <button class="progress-tab" data-tab="achievements">🏅 Lencana</button>
+        <button class="progress-tab" data-tab="leaderboard">🏆 Papan Skor</button>
       </div>
 
       <div id="progress-mission-panel">
@@ -385,6 +386,11 @@
 
       <div id="progress-achievements-panel" class="hidden">
         <div id="achievements-grid" class="fishdex-grid"></div>
+      </div>
+
+      <div id="progress-leaderboard-panel" class="hidden">
+        <p class="leaderboard-hint"><i class="fa-solid fa-circle-info"></i> Papan skor lokal berdasarkan total tangkapan (ikan + sampah).</p>
+        <div id="leaderboard-list" class="leaderboard-list"></div>
       </div>
 
       <div class="settings-footer">
@@ -494,6 +500,24 @@
 
       <div class="modal-actions">
         <button id="btn-tutorial-next" class="hd-nav-btn gold wide">Lanjut <i class="fa-solid fa-arrow-right"></i></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- NPC Intro Dialog Modal (shown once, first time playing) -->
+  <div id="modal-npc-dialog" class="modal-backdrop hidden">
+    <div class="modal-box dialog-box">
+      <div class="dialog-npc-header">
+        <div class="dialog-npc-avatar">🧓</div>
+        <div class="dialog-npc-name">Nelayan Tua</div>
+      </div>
+      <p id="dialog-npc-text" class="dialog-npc-text">—</p>
+      <div id="dialog-npc-choices" class="dialog-npc-choices">
+        <button class="hd-nav-btn wide dialog-choice-btn" data-choice="yes">Ya, ceritain dong!</button>
+        <button class="hd-nav-btn wide dialog-choice-btn" data-choice="no">Nggak usah, aku mau mancing aja</button>
+      </div>
+      <div id="dialog-npc-continue" class="hidden">
+        <button id="btn-dialog-continue" class="hd-nav-btn gold wide">Mulai Memancing <i class="fa-solid fa-play"></i></button>
       </div>
     </div>
   </div>

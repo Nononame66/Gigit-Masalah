@@ -68,6 +68,21 @@ export const SHOP_BAITS = [
   { id: 'magnet', name: 'Umpan Magnet Purba (x3)', price: 250, count: 3, desc: 'Peluang tinggi mendapat Kadal Glitched Mythic.' }
 ];
 
+// Local leaderboard "Top Tangkapan" — fixed dummy rivals (no backend/server
+// involved) so the board stays stable across sessions. The real player's
+// own score is merged in and sorted alongside these at render time.
+const DUMMY_LEADERBOARD = [
+  { name: 'KadalHunter99', catches: 812 },
+  { name: 'RajaSungaiTua', catches: 645 },
+  { name: 'MancingSanti', catches: 530 },
+  { name: 'BiawakBoss', catches: 410 },
+  { name: 'SiKomodo_ID', catches: 355 },
+  { name: 'GlowfishHunter', catches: 290 },
+  { name: 'PemancingPagi', catches: 205 },
+  { name: 'AnakSungai07', catches: 140 },
+  { name: 'NubiKail', catches: 60 }
+];
+
 export class UIManager {
   constructor(gameEngineGetter) {
     this.getEngine = gameEngineGetter;
@@ -258,6 +273,7 @@ export class UIManager {
         const targetTab = tab.dataset.tab;
         document.getElementById('progress-mission-panel').classList.toggle('hidden', targetTab !== 'mission');
         document.getElementById('progress-achievements-panel').classList.toggle('hidden', targetTab !== 'achievements');
+        document.getElementById('progress-leaderboard-panel').classList.toggle('hidden', targetTab !== 'leaderboard');
         audio.playButtonClick();
       });
     });
@@ -909,6 +925,7 @@ export class UIManager {
     storage.state = storage.load();
     this.renderMissionTab();
     this.renderAchievementsTab();
+    this.renderLeaderboardTab();
     document.getElementById('modal-progress').classList.remove('hidden');
   }
 
@@ -943,6 +960,33 @@ export class UIManager {
         <div style="font-size:0.68rem; color:#cbd5e1; margin-top:4px;">${def.desc}</div>
       `;
       grid.appendChild(card);
+    });
+  }
+
+  renderLeaderboardTab() {
+    const list = document.getElementById('leaderboard-list');
+    if (!list) return;
+    list.innerHTML = '';
+
+    const myCatches = (storage.state.stats.totalCaught || 0) + (storage.state.stats.totalJunkCaught || 0);
+    const myName = storage.state.playerName || 'Pemancing';
+
+    const entries = [
+      ...DUMMY_LEADERBOARD.map(e => ({ ...e, isMe: false })),
+      { name: myName, catches: myCatches, isMe: true }
+    ].sort((a, b) => b.catches - a.catches);
+
+    entries.forEach((entry, idx) => {
+      const rank = idx + 1;
+      const medal = rank === 1 ? '🥇' : rank === 2 ? '🥈' : rank === 3 ? '🥉' : `#${rank}`;
+      const row = document.createElement('div');
+      row.className = `leaderboard-row ${entry.isMe ? 'me' : ''}`;
+      row.innerHTML = `
+        <span class="leaderboard-rank">${medal}</span>
+        <span class="leaderboard-name">${entry.name}${entry.isMe ? ' (Kamu)' : ''}</span>
+        <span class="leaderboard-score">${entry.catches} 🐟</span>
+      `;
+      list.appendChild(row);
     });
   }
 }
