@@ -22,6 +22,11 @@
 
   <div id="canvas-container"></div>
 
+  <!-- Damage/feedback flash overlay — brief red pulse on failure events
+       (line snapped, fish escaped). Sits outside #ui-overlay so it never
+       inherits pointer-events:auto and can never block taps. -->
+  <div id="damage-flash"></div>
+
   <!-- ╔══════════════════════════════╗ -->
   <!-- ║  MAIN MENU / START SCREEN    ║ -->
   <!-- ╚══════════════════════════════╝ -->

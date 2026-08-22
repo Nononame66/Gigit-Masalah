@@ -390,6 +390,14 @@ export class UIManager {
     }, 500);
   }
 
+  flashDamage() {
+    const flash = document.getElementById('damage-flash');
+    if (!flash) return;
+    flash.classList.remove('flash-active');
+    void flash.offsetWidth; // force reflow so the animation can replay back-to-back
+    flash.classList.add('flash-active');
+  }
+
   updateHUD() {
     this.coinCountEl.textContent = storage.state.coins;
     this.playerLevelEl.textContent = storage.state.level;

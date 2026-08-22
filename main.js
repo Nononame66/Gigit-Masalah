@@ -15,6 +15,12 @@ let gamePaused = true; // starts true — Main Menu is shown first
 
 const CAMERA_SENSITIVITY_MAP = { rendah: 0.6, sedang: 1.0, tinggi: 1.5 };
 
+// Disable right-click context menu & native image/text drag so the game
+// screen can't be trivially copied via "Save As" / drag-out, alongside
+// the CSS user-select:none rules in style.css.
+document.addEventListener('contextmenu', (e) => e.preventDefault());
+document.addEventListener('dragstart', (e) => e.preventDefault());
+
 function init() {
   console.log('🎮 Gigit Masalah – Starting…');
 

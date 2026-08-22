@@ -532,6 +532,7 @@ export class GameEngine {
 
     if (alertMessage) {
       this.ui.showAlert(alertMessage, '❌');
+      this.ui.flashDamage();
     }
     
     // Continue auto cast if enabled
