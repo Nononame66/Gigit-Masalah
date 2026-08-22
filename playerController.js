@@ -18,6 +18,7 @@ export class PlayerController {
     this.camHeight   = 5.0;
     this.camAngleY   = 0;
     this.camAngleX   = 0.25;
+    this.sensitivity = 1.0; // multiplier applied to camera look input
 
     this.keys = { w:false, a:false, s:false, d:false, space:false };
     this.joystickInput = { x:0, y:0 };
@@ -52,9 +53,9 @@ export class PlayerController {
     window.addEventListener('mouseup',   () => { this.isMouseDown = false; });
     window.addEventListener('mousemove', e => {
       if (!this.isMouseDown) return;
-      this.camAngleY -= (e.clientX - this.prevMouseX) * 0.005;
+      this.camAngleY -= (e.clientX - this.prevMouseX) * 0.005 * this.sensitivity;
       this.camAngleX  = THREE.MathUtils.clamp(
-        this.camAngleX + (e.clientY - this.prevMouseY) * 0.003, -0.1, 0.8
+        this.camAngleX + (e.clientY - this.prevMouseY) * 0.003 * this.sensitivity, -0.1, 0.8
       );
       this.prevMouseX = e.clientX;
       this.prevMouseY = e.clientY;
@@ -71,9 +72,9 @@ export class PlayerController {
     c.addEventListener('touchmove', e => {
       if (!this.isMouseDown || e.touches.length !== 1) return;
       if (e.target.closest('#joystick-container')) return; // joystick finger must never rotate camera
-      this.camAngleY -= (e.touches[0].clientX - this.prevMouseX) * 0.006;
+      this.camAngleY -= (e.touches[0].clientX - this.prevMouseX) * 0.006 * this.sensitivity;
       this.camAngleX  = THREE.MathUtils.clamp(
-        this.camAngleX + (e.touches[0].clientY - this.prevMouseY) * 0.004, -0.1, 0.8
+        this.camAngleX + (e.touches[0].clientY - this.prevMouseY) * 0.004 * this.sensitivity, -0.1, 0.8
       );
       this.prevMouseX = e.touches[0].clientX;
       this.prevMouseY = e.touches[0].clientY;
@@ -126,6 +127,10 @@ export class PlayerController {
         }
       }
     }, { passive: false });
+  }
+
+  setSensitivity(multiplier) {
+    this.sensitivity = multiplier;
   }
 
   onKeyDown(e) {

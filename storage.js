@@ -56,6 +56,7 @@ const DEFAULT_STATE = {
   },
   soundEnabled: true,
   graphicsQuality: 'high',
+  cameraSensitivity: 'sedang', // 'rendah' | 'sedang' | 'tinggi'
   playerName: null,
   playerAvatar: null
 };
@@ -308,6 +309,12 @@ export class StorageManager {
     this.state.graphicsQuality = quality === 'low' ? 'low' : 'high';
     this.save();
     return this.state.graphicsQuality;
+  }
+
+  setCameraSensitivity(level) {
+    this.state.cameraSensitivity = ['rendah', 'sedang', 'tinggi'].includes(level) ? level : 'sedang';
+    this.save();
+    return this.state.cameraSensitivity;
   }
 }
 

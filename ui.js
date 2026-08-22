@@ -740,7 +740,39 @@ export class UIManager {
     nameInput.value = storage.state.playerName || '';
     if (storage.state.playerAvatar) preview.src = storage.state.playerAvatar;
     this._pendingAvatar = null;
+    this.renderCharacterStatus();
     document.getElementById('modal-profile').classList.remove('hidden');
+  }
+
+  renderCharacterStatus() {
+    // Always read the latest LocalStorage-backed state.
+    storage.state = storage.load();
+
+    const totalCatches = (storage.state.stats.totalCaught || 0) + (storage.state.stats.totalJunkCaught || 0);
+    document.getElementById('profile-status-level').textContent = storage.state.level;
+    document.getElementById('profile-status-catches').textContent = totalCatches;
+    document.getElementById('profile-status-coins').textContent = storage.state.coins;
+
+    const rod = SHOP_RODS.find(r => r.id === storage.state.equippedRod) || SHOP_RODS[0];
+    document.getElementById('profile-status-rodname').textContent = rod.name;
+
+    const statsEl = document.getElementById('profile-status-rodstats');
+    statsEl.innerHTML = `
+      <div class="stat-row">
+        <span class="stat-label">Control:</span>
+        <div class="stat-bar-mini"><div class="stat-fill" style="width: ${rod.control}%"></div></div>
+        <span class="stat-value">${rod.control}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Resilience:</span>
+        <div class="stat-bar-mini"><div class="stat-fill resilience" style="width: ${rod.resilience}%"></div></div>
+        <span class="stat-value">${rod.resilience}</span>
+      </div>
+      <div class="stat-row">
+        <span class="stat-label">Luck:</span>
+        <span class="stat-value gold">+${rod.luckBonus}%</span>
+      </div>
+    `;
   }
 
   resizeImageToDataURL(file, size = 200) {

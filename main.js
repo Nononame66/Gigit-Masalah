@@ -13,6 +13,8 @@ let env, playerController, engine, ui;
 let lastTime = 0;
 let gamePaused = true; // starts true — Main Menu is shown first
 
+const CAMERA_SENSITIVITY_MAP = { rendah: 0.6, sedang: 1.0, tinggi: 1.5 };
+
 function init() {
   console.log('🎮 Gigit Masalah – Starting…');
 
@@ -143,6 +145,11 @@ function setupMenus() {
     const isLow = storage.state.graphicsQuality === 'low';
     document.getElementById('settings-quality-high')?.classList.toggle('active', !isLow);
     document.getElementById('settings-quality-low')?.classList.toggle('active', isLow);
+
+    const sens = storage.state.cameraSensitivity || 'sedang';
+    document.getElementById('settings-sens-low')?.classList.toggle('active', sens === 'rendah');
+    document.getElementById('settings-sens-mid')?.classList.toggle('active', sens === 'sedang');
+    document.getElementById('settings-sens-high')?.classList.toggle('active', sens === 'tinggi');
   };
 
   const openSettings = () => {
@@ -176,6 +183,25 @@ function setupMenus() {
     syncSettingsUI();
   });
 
+  document.getElementById('settings-sens-low')?.addEventListener('click', () => {
+    storage.setCameraSensitivity('rendah');
+    playerController.setSensitivity(CAMERA_SENSITIVITY_MAP.rendah);
+    audio.playButtonClick();
+    syncSettingsUI();
+  });
+  document.getElementById('settings-sens-mid')?.addEventListener('click', () => {
+    storage.setCameraSensitivity('sedang');
+    playerController.setSensitivity(CAMERA_SENSITIVITY_MAP.sedang);
+    audio.playButtonClick();
+    syncSettingsUI();
+  });
+  document.getElementById('settings-sens-high')?.addEventListener('click', () => {
+    storage.setCameraSensitivity('tinggi');
+    playerController.setSensitivity(CAMERA_SENSITIVITY_MAP.tinggi);
+    audio.playButtonClick();
+    syncSettingsUI();
+  });
+
   // Shared Credits panel
   const openCredits = () => {
     audio.playButtonClick();
@@ -190,6 +216,10 @@ function setupMenus() {
 
   // Apply the saved graphics setting immediately (renderer already exists)
   if (storage.state.graphicsQuality === 'low') env.setGraphicsQuality('low');
+
+  // Apply the saved camera sensitivity immediately
+  const savedSens = CAMERA_SENSITIVITY_MAP[storage.state.cameraSensitivity] || 1.0;
+  playerController.setSensitivity(savedSens);
 }
 
 function animate(now) {

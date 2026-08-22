@@ -102,6 +102,15 @@
         </div>
       </div>
 
+      <div class="settings-row">
+        <span>🎮 Sensitivitas Kamera</span>
+        <div class="settings-segmented">
+          <button id="settings-sens-low" class="settings-seg-btn">Rendah</button>
+          <button id="settings-sens-mid" class="settings-seg-btn active">Sedang</button>
+          <button id="settings-sens-high" class="settings-seg-btn">Tinggi</button>
+        </div>
+      </div>
+
       <div class="settings-info-block">
         <strong>🎮 Kontrol</strong>
         <p>PC: WASD gerak · drag mouse kamera · SPASI lempar/tarik<br>
@@ -409,6 +418,31 @@
         </label>
         <input type="file" id="profile-photo-input" accept="image/*" class="hidden">
         <p class="profile-avatar-hint">Ketuk buat pilih foto dari galeri</p>
+      </div>
+
+      <div class="profile-status-card">
+        <h3 class="profile-status-title"><i class="fa-solid fa-chart-simple"></i> Status Karakter</h3>
+        <div class="profile-status-grid">
+          <div class="profile-status-stat">
+            <span>Level</span>
+            <strong id="profile-status-level">1</strong>
+          </div>
+          <div class="profile-status-stat">
+            <span>Total Tangkapan</span>
+            <strong id="profile-status-catches">0</strong>
+          </div>
+          <div class="profile-status-stat">
+            <span>Koin</span>
+            <strong id="profile-status-coins">0</strong>
+          </div>
+        </div>
+        <div class="profile-status-rod">
+          <div class="profile-status-rod-name">
+            <i class="fa-solid fa-wand-magic-sparkles"></i>
+            <span id="profile-status-rodname">Kail Kayu Kadal</span>
+          </div>
+          <div class="rod-stats-display" id="profile-status-rodstats"></div>
+        </div>
       </div>
 
       <label class="profile-name-label" for="profile-name-input">Nama Pemancing</label>
