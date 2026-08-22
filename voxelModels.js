@@ -312,7 +312,62 @@ export function createVoxelTree() {
 }
 
 /* ==========================================================
-   6. 15 GIGITAN KADAL SPECIES CATALOG WITH LORE & XP
+   6. BOAT — faceted low-poly hull, ridable on the water
+   ========================================================== */
+export function createVoxelBoat() {
+  const group = new THREE.Group();
+
+  const hullMat = getHDMaterial(0x8a5a34, 0.7);
+  const trimMat = getHDMaterial(0xc9975f, 0.6);
+  const seatMat = getHDMaterial(0x5c3a21, 0.7);
+
+  // Main hull body (stretched, flattened cylinder)
+  const hull = new THREE.Mesh(new THREE.CylinderGeometry(0.55, 0.42, 2.6, 6), hullMat);
+  hull.rotation.z = Math.PI / 2;
+  hull.scale.set(1, 1, 0.62);
+  hull.position.y = 0.28;
+  hull.castShadow = true;
+  hull.receiveShadow = true;
+  group.add(hull);
+
+  // Bow taper (front)
+  const bow = new THREE.Mesh(new THREE.ConeGeometry(0.42, 0.85, 5), hullMat);
+  bow.rotation.z = -Math.PI / 2;
+  bow.scale.set(1, 1, 0.62);
+  bow.position.set(1.5, 0.28, 0);
+  bow.castShadow = true;
+  group.add(bow);
+
+  // Stern taper (back, slightly blunter)
+  const stern = new THREE.Mesh(new THREE.ConeGeometry(0.4, 0.5, 5), hullMat);
+  stern.rotation.z = Math.PI / 2;
+  stern.scale.set(1, 1, 0.62);
+  stern.position.set(-1.45, 0.28, 0);
+  group.add(stern);
+
+  // Rim trim
+  const rim = new THREE.Mesh(new THREE.TorusGeometry(0.5, 0.05, 4, 10), trimMat);
+  rim.rotation.x = Math.PI / 2;
+  rim.scale.set(1.3, 1, 0.62);
+  rim.position.y = 0.5;
+  group.add(rim);
+
+  // Seat bench
+  const seat = new THREE.Mesh(new THREE.BoxGeometry(0.9, 0.08, 0.4), seatMat);
+  seat.position.set(0, 0.42, 0);
+  group.add(seat);
+
+  // Small paddle resting across the seat, purely decorative
+  const paddle = new THREE.Mesh(new THREE.CylinderGeometry(0.025, 0.025, 1.0, 5), trimMat);
+  paddle.rotation.z = Math.PI / 2.2;
+  paddle.position.set(0.1, 0.5, 0.15);
+  group.add(paddle);
+
+  return group;
+}
+
+/* ==========================================================
+   7. 15 GIGITAN KADAL SPECIES CATALOG WITH LORE & XP
    (unchanged data — only the render style below is faceted)
    ========================================================== */
 export const FISH_SPECIES = [

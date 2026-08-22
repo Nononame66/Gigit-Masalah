@@ -69,8 +69,8 @@ function init() {
    never affects gameplay/stats. */
 const NPC_DIALOG_LINES = {
   intro: 'Woi, anak muda! Selamat datang di Lizard Cove. Katanya di sungai sini ada legenda seekor kadal raksasa yang belum pernah berhasil ditangkap siapa pun... Mau dengar ceritanya?',
-  yes: 'Konon namanya "Leviathan" — bersisik kristal ungu-neon, cuma nongol pas malam gelap gulita. Entah itu cerita bohong atau beneran... coba aja buktiin sendiri, Nak!',
-  no: 'Hahaha, dasar nggak sabaran! Yaudah, langsung aja turun ke dermaga sana, umpanmu udah nunggu tuh.'
+  yes: 'Konon namanya "Leviathan" — bersisik kristal ungu-neon, cuma nongol pas malam gelap gulita. Coba aja buktiin sendiri, Nak! Kalau mau nyari lebih jauh, ada kapal kecil di sebelah dermaga — tinggal dideketin buat naik.',
+  no: 'Hahaha, dasar nggak sabaran! Yaudah, langsung aja turun ke dermaga sana, umpanmu udah nunggu tuh. Ada kapal kecil juga di sebelah dermaga kalau mau mancing lebih jauh.'
 };
 let introDialogOnComplete = null;
 

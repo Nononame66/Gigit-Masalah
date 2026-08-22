@@ -12,7 +12,8 @@ import {
   createVoxelRod,
   createVoxelBobber,
   createVoxelPier,
-  createVoxelTree
+  createVoxelTree,
+  createVoxelBoat
 } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
 import { audio } from './audio.js';
@@ -80,6 +81,7 @@ export class GameEnvironment {
     this.setupPierLanterns();
     this.setupBirds();
     this.setupJumpingFish();
+    this.setupBoat();
     this.setupFishingLine();
     this.setupParticles();
     this.setupSplashRing();
@@ -453,6 +455,16 @@ export class GameEnvironment {
     this.triggerSplash(new THREE.Vector3(x, 0, z));
   }
 
+  /* ── Rideable boat — docked beside the pier at start. Its x/z are
+     driven by PlayerController while boarded; here we only handle the
+     idle bob/roll so it always looks alive on the water ─────────── */
+  setupBoat() {
+    this.boat = createVoxelBoat();
+    this.boat.position.set(2.6, 0, 4.5);
+    this.boat.rotation.y = Math.PI / 2;
+    this.scene.add(this.boat);
+  }
+
   setupFishingLine() {
     const n = 20;
     const geo = new THREE.BufferGeometry();
@@ -621,6 +633,14 @@ export class GameEnvironment {
     // Pier lanterns glow warmer as it gets darker (single shared material)
     if (this.lanternMat) {
       this.lanternMat.emissiveIntensity = THREE.MathUtils.clamp((1 - this.dayFactor) * 1.6, 0, 1.4);
+    }
+
+    // Boat idle float — x/z are driven by PlayerController while
+    // boarded, this only adds the vertical bob + gentle roll so it
+    // always looks like it's sitting on water, docked or driven.
+    if (this.boat) {
+      this.boat.position.y = Math.sin(time * 1.6 + this.boat.position.x * 0.3) * 0.08;
+      this.boat.rotation.z = Math.sin(time * 1.3 + this.boat.position.z * 0.2) * 0.03;
     }
 
     // Birds — simple circular flight path, resting at night / Low graphics

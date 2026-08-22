@@ -4,6 +4,7 @@
    ========================================================== */
 
 import * as THREE from 'three';
+import { audio } from './audio.js';
 
 export class PlayerController {
   constructor(env) {
@@ -33,6 +34,20 @@ export class PlayerController {
     this.isMouseDown = false;
     this.prevMouseX  = 0;
     this.prevMouseY  = 0;
+
+    /* ── Boat mode ──────────────────────────────────────── */
+    this.boat        = env.boat;
+    this.isOnBoat     = false;
+    this.boardDistance = 2.4;
+    this.boatSpeed     = 0;      // current forward speed (with inertia)
+    this.boatMaxSpeed  = 9;
+    this.boatAccel     = 6;
+    this.boatDrag      = 3.2;
+    this.boatTurnSpeed = 1.9;    // rad/sec at full steer
+
+    this.boatPromptBtn   = document.getElementById('btn-boat-interact');
+    this.boatPromptLabel = document.getElementById('boat-interact-label');
+    this.boatPromptBtn?.addEventListener('click', () => this.handleBoatInteract());
 
     this.setupInputListeners();
   }
@@ -149,6 +164,12 @@ export class PlayerController {
   }
 
   update(delta, canMove = true) {
+    if (this.isOnBoat) {
+      this.updateBoat(delta, canMove);
+      this.updateBoatPrompt();
+      return;
+    }
+
     let mx = 0, mz = 0;
 
     if (canMove) {
@@ -206,6 +227,7 @@ export class PlayerController {
 
     this.animateLimbs(delta);
     this.updateCamera();
+    this.updateBoatPrompt();
   }
 
   /* ── Collision ─────────────────────────────────────────── */
@@ -235,6 +257,131 @@ export class PlayerController {
     // Gentle island roll
     return 1.8 + Math.sin(x * 0.15) * Math.cos(z * 0.12) * 0.5
                + Math.sin(x * 0.28 + z * 0.2) * 0.3;
+  }
+
+  /* ── Boat: sailable-water bounds + solid land/dock collision ──── */
+  resolveBoatCollision(nx, nz) {
+    const WORLD  = { minX: -70, maxX: 70,  minZ: -15, maxZ: 130 }; // sailable area
+    const ISLAND = { minX: -18, maxX: 18,  minZ: -22, maxZ: 2   }; // solid landmass
+    const PIER   = { minX: -1.6, maxX: 1.6, minZ: -2, maxZ: 24  }; // solid dock
+
+    let blocked = false;
+    let x = THREE.MathUtils.clamp(nx, WORLD.minX, WORLD.maxX);
+    let z = THREE.MathUtils.clamp(nz, WORLD.minZ, WORLD.maxZ);
+    if (x !== nx || z !== nz) blocked = true;
+
+    const insideRect = (px, pz, r) => px >= r.minX && px <= r.maxX && pz >= r.minZ && pz <= r.maxZ;
+    if (insideRect(x, z, ISLAND) || insideRect(x, z, PIER)) {
+      // Simple "bump" collision — cancel movement into solid land/dock
+      // rather than trying to compute a wall slide.
+      blocked = true;
+      x = this.boat.position.x;
+      z = this.boat.position.z;
+    }
+
+    return { x, z, blocked };
+  }
+
+  /* ── Boat: boarding / disembarking ─────────────────────────── */
+  canBoard() {
+    if (this.isOnBoat || !this.boat) return false;
+    const dx = this.player.position.x - this.boat.position.x;
+    const dz = this.player.position.z - this.boat.position.z;
+    return Math.hypot(dx, dz) < this.boardDistance;
+  }
+
+  boardBoat() {
+    if (!this.canBoard()) return false;
+    this.isOnBoat = true;
+    this.boatSpeed = 0;
+    audio.playButtonClick();
+    return true;
+  }
+
+  exitBoat() {
+    if (!this.isOnBoat || !this.boat) return false;
+    this.isOnBoat = false;
+    this.boatSpeed = 0;
+    // Snap the player back to the nearest walkable pier/island point so
+    // they can never get stranded out in open water, wherever the boat is.
+    const { x, z } = this.clampPosition(this.boat.position.x, this.boat.position.z);
+    this.player.position.x = x;
+    this.player.position.z = z;
+    this.player.position.y = this.getGroundY(x, z);
+    this.isGrounded = true;
+    this.velocityY = 0;
+    audio.playButtonClick();
+    return true;
+  }
+
+  handleBoatInteract() {
+    if (this.isOnBoat) this.exitBoat();
+    else this.boardBoat();
+    this.updateBoatPrompt();
+  }
+
+  updateBoatPrompt() {
+    if (!this.boatPromptBtn) return;
+    if (this.isOnBoat) {
+      this.boatPromptBtn.classList.remove('hidden');
+      this.boatPromptLabel.textContent = 'Turun Kapal';
+    } else if (this.canBoard()) {
+      this.boatPromptBtn.classList.remove('hidden');
+      this.boatPromptLabel.textContent = 'Naik Kapal';
+    } else {
+      this.boatPromptBtn.classList.add('hidden');
+    }
+  }
+
+  /* ── Boat driving physics — arcade-style throttle + turn, with
+     inertia/drag so it feels like a boat instead of a character ──── */
+  updateBoat(delta, canMove) {
+    let throttle = 0, steer = 0;
+    if (canMove) {
+      if (this.keys.w) throttle += 1;
+      if (this.keys.s) throttle -= 1;
+      if (this.keys.a) steer += 1;
+      if (this.keys.d) steer -= 1;
+      if (Math.abs(this.joystickInput.y) > 0.1) throttle -= this.joystickInput.y;
+      if (Math.abs(this.joystickInput.x) > 0.1) steer -= this.joystickInput.x;
+    }
+
+    // Accelerate toward target speed, or drag back to zero with no input
+    const targetSpeed = throttle * this.boatMaxSpeed;
+    if (throttle !== 0) {
+      const diff = targetSpeed - this.boatSpeed;
+      const step = this.boatAccel * delta;
+      this.boatSpeed += Math.abs(diff) < step ? diff : Math.sign(diff) * step;
+    } else {
+      const dragAmt = this.boatDrag * delta;
+      this.boatSpeed = Math.abs(this.boatSpeed) < dragAmt ? 0 : this.boatSpeed - Math.sign(this.boatSpeed) * dragAmt;
+    }
+
+    // Turning — full rate while cruising, gentler pivot near-stationary
+    if (steer !== 0) {
+      const turnFactor = Math.abs(this.boatSpeed) > 0.3 ? 1 : 0.4;
+      this.boat.rotation.y += steer * this.boatTurnSpeed * turnFactor * delta;
+    }
+
+    const dirX = Math.sin(this.boat.rotation.y);
+    const dirZ = Math.cos(this.boat.rotation.y);
+    const nx = this.boat.position.x + dirX * this.boatSpeed * delta;
+    const nz = this.boat.position.z + dirZ * this.boatSpeed * delta;
+
+    const resolved = this.resolveBoatCollision(nx, nz);
+    this.boat.position.x = resolved.x;
+    this.boat.position.z = resolved.z;
+    if (resolved.blocked) this.boatSpeed *= 0.3; // bump off land/dock edges
+
+    // Keep the character glued to the boat's deck — this means camera,
+    // rod-tip, and casting logic (which all read this.player) keep
+    // working completely unchanged while driving.
+    this.player.position.x = this.boat.position.x;
+    this.player.position.z = this.boat.position.z;
+    this.player.position.y = this.boat.position.y + 0.55;
+    this.player.rotation.y = this.boat.rotation.y;
+
+    this.updateCamera();
   }
 
   /* ── Limb animation (voxel model) ─────────────────────── */
