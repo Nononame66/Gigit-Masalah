@@ -457,12 +457,21 @@ export class GameEnvironment {
   }
 
   /* ── Shared land/water check — used by casting validation and boat
-     collision so both agree on exactly the same land footprint ──── */
+     collision so both agree on exactly the same land footprint.
+     Covers the island's walkable core, the pier deck, AND the sandy
+     beach strips (which sit outside the island's walkable collision
+     box but are still visibly solid sand, not water). ─────────── */
   isWaterAt(x, z) {
-    const ISLAND = { minX: -18, maxX: 18, minZ: -22, maxZ: 2 };
-    const PIER   = { minX: -1.6, maxX: 1.6, minZ: -2, maxZ: 24 };
+    const ISLAND      = { minX: -18, maxX: 18, minZ: -22, maxZ: 2 };
+    const PIER        = { minX: -1.6, maxX: 1.6, minZ: -2, maxZ: 24 };
+    const BEACH_CENTER = { minX: -4, maxX: 4, minZ: 0, maxZ: 10 };
+    const BEACH_LEFT   = { minX: -18, maxX: -8, minZ: -9, maxZ: -1 };
+    const BEACH_RIGHT  = { minX: 8, maxX: 18, minZ: -9, maxZ: -1 };
     const inside = (r) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ;
-    return !inside(ISLAND) && !inside(PIER);
+    return !(
+      inside(ISLAND) || inside(PIER) ||
+      inside(BEACH_CENTER) || inside(BEACH_LEFT) || inside(BEACH_RIGHT)
+    );
   }
 
   /* ── Rideable boat — docked beside the pier at start. Its x/z are

@@ -36,6 +36,7 @@ function init() {
 
   // 3. UI manager
   ui = new UIManager(() => engine);
+  playerController.ui = ui;
 
   // 4. Game engine
   engine = new GameEngine(env, ui);

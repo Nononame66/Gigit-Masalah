@@ -39,6 +39,7 @@ export class PlayerController {
     this.boat        = env.boat;
     this.isOnBoat     = false;
     this.boardDistance = 3.0;
+    this.disembarkMaxDistance = 4.0; // must be near shore/dock to get off
     this.boatSpeed     = 0;      // current forward speed (with inertia)
     this.boatMaxSpeed  = 9;
     this.boatAccel     = 6;
@@ -297,11 +298,21 @@ export class PlayerController {
 
   exitBoat() {
     if (!this.isOnBoat || !this.boat) return false;
+
+    const { x, z } = this.clampPosition(this.boat.position.x, this.boat.position.z);
+    const distToShore = Math.hypot(this.boat.position.x - x, this.boat.position.z - z);
+
+    if (distToShore > this.disembarkMaxDistance) {
+      // Refuse to disembark out in open water — otherwise the boat gets
+      // left behind unreachable (the player can only walk on land/pier,
+      // never in water), permanently stranding it.
+      audio.playButtonClick();
+      this.ui?.showAlert('Dekatkan kapal ke dermaga/pantai dulu buat turun!', '⚓');
+      return false;
+    }
+
     this.isOnBoat = false;
     this.boatSpeed = 0;
-    // Snap the player back to the nearest walkable pier/island point so
-    // they can never get stranded out in open water, wherever the boat is.
-    const { x, z } = this.clampPosition(this.boat.position.x, this.boat.position.z);
     this.player.position.x = x;
     this.player.position.z = z;
     this.player.position.y = this.getGroundY(x, z);
