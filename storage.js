@@ -32,8 +32,8 @@ const MISSION_TEMPLATES = [
 ];
 
 const DEFAULT_STATE = {
-  coins: 5000,
-  level: 99,
+  coins: 489,
+  level: 1,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
