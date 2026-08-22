@@ -98,6 +98,13 @@ export class UIManager {
 
     this.setupEventListeners();
     this.updateHUD();
+
+    // Tracks the currently-running 3D catch-preview renderer/RAF loop so
+    // it can be torn down before the next one starts (fixes a leak where
+    // every catch spawned a new WebGLRenderer + requestAnimationFrame loop
+    // that never stopped).
+    this._previewRenderer = null;
+    this._previewAnimId = null;
   }
 
   setupEventListeners() {
@@ -493,6 +500,13 @@ export class UIManager {
 
   async renderFish3DPreview(fish) {
     const container = document.getElementById('catch-preview-container');
+
+    // Stop the previous preview's render loop and free its WebGL context
+    // FIRST. Without this, every new catch left the old renderer running
+    // forever in the background — a growing pile of active RAF loops and
+    // WebGL contexts that made the game get slower/hotter the longer you
+    // played, and could eventually corrupt future previews.
+    this.disposeFish3DPreview();
     container.querySelectorAll('canvas').forEach(c => c.remove());
 
     let loadingEl = container.querySelector('.preview-loading');
@@ -515,6 +529,7 @@ export class UIManager {
     renderer.toneMapping = THREE.ACESFilmicToneMapping;
     renderer.toneMappingExposure = 1.1;
     container.appendChild(renderer.domElement);
+    this._previewRenderer = renderer;
 
     const light = new THREE.DirectionalLight(0xffffff, 1.8);
     light.position.set(5, 5, 5);
@@ -527,7 +542,10 @@ export class UIManager {
     loadingEl.classList.add('hidden');
 
     // Bail out if the modal got closed while the model was loading.
-    if (!container.isConnected) return;
+    if (!container.isConnected) {
+      this.disposeFish3DPreview();
+      return;
+    }
 
     if (!previewModel) {
       previewModel = fish.isJunk ? createVoxelJunkModel(fish.id) : createVoxelFishModel(fish.id);
@@ -548,11 +566,34 @@ export class UIManager {
     let animId;
     const animate = () => {
       animId = requestAnimationFrame(animate);
+      this._previewAnimId = animId;
       previewModel.rotation.y += 0.02;
       previewModel.rotation.x = Math.sin(Date.now() * 0.002) * 0.15;
       renderer.render(scene, camera);
     };
     animate();
+  }
+
+  /**
+   * Stops the running catch-preview RAF loop (if any) and fully releases
+   * its WebGLRenderer/GPU context. Must be called before starting a new
+   * preview and whenever the catch modal is closed, or old preview loops
+   * pile up in the background forever.
+   */
+  disposeFish3DPreview() {
+    if (this._previewAnimId !== null) {
+      cancelAnimationFrame(this._previewAnimId);
+      this._previewAnimId = null;
+    }
+    if (this._previewRenderer) {
+      this._previewRenderer.dispose();
+      // Actively free the underlying GPU context instead of waiting for
+      // garbage collection — this is what actually prevents the "too many
+      // WebGL contexts" browser warning/glitching after many catches.
+      this._previewRenderer.forceContextLoss?.();
+      this._previewRenderer.domElement?.remove();
+      this._previewRenderer = null;
+    }
   }
 
   openShop() {
@@ -806,6 +847,7 @@ export class UIManager {
 
   closeModal(modalId) {
     audio.playButtonClick();
+    if (modalId === 'modal-catch') this.disposeFish3DPreview();
     document.getElementById(modalId).classList.add('hidden');
   }
 

@@ -86,6 +86,12 @@ export class GameEnvironment {
     this.weatherTimer = 0;
     this.nextWeatherCheck = 20;
 
+    // Frame counter used to throttle the water ripple recompute on Low
+    // graphics — the sine loop touches ~2600 vertices every frame
+    // regardless of quality setting, which is one of the biggest CPU
+    // costs on low-end phones.
+    this._waterFrameCounter = 0;
+
     window.addEventListener('resize', () => this.onWindowResize());
   }
 
@@ -527,13 +533,20 @@ export class GameEnvironment {
     this.sky.material.uniforms.topColor.value.copy(skyTop);
     this.sky.material.uniforms.bottomColor.value.copy(skyBottom);
 
-    // Water ripple
-    const pos = this.waterPositions;
-    for (let i = 0; i < this.waterOriginalY.length; i++) {
-      const u = pos[i * 3], v = pos[i * 3 + 2];
-      pos[i * 3 + 1] = Math.sin(time * 2.0 + u * 0.4 + v * 0.3) * 0.15;
+    // Water ripple — full smoothness every frame on High graphics.
+    // On Low graphics, only recompute every 3rd frame: the sine-based
+    // displacement is subtle enough that this isn't noticeable, but it
+    // cuts this loop's CPU cost by ~66% on low-end phones.
+    this._waterFrameCounter++;
+    const shouldUpdateWater = !this.isLowGraphics || (this._waterFrameCounter % 3 === 0);
+    if (shouldUpdateWater) {
+      const pos = this.waterPositions;
+      for (let i = 0; i < this.waterOriginalY.length; i++) {
+        const u = pos[i * 3], v = pos[i * 3 + 2];
+        pos[i * 3 + 1] = Math.sin(time * 2.0 + u * 0.4 + v * 0.3) * 0.15;
+      }
+      this.water.geometry.attributes.position.needsUpdate = true;
     }
-    this.water.geometry.attributes.position.needsUpdate = true;
 
     // Clouds drift
     this.clouds.children.forEach(c => {

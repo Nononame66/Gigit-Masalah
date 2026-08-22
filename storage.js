@@ -265,6 +265,7 @@ export class StorageManager {
   setGraphicsQuality(quality) {
     this.state.graphicsQuality = quality === 'low' ? 'low' : 'high';
     this.save();
+    return this.state.graphicsQuality;
   }
 
   addToInventory(item) {
@@ -304,12 +305,6 @@ export class StorageManager {
     this.state.soundEnabled = !this.state.soundEnabled;
     this.save();
     return this.state.soundEnabled;
-  }
-
-  setGraphicsQuality(quality) {
-    this.state.graphicsQuality = quality === 'low' ? 'low' : 'high';
-    this.save();
-    return this.state.graphicsQuality;
   }
 
   setCameraSensitivity(level) {
