@@ -53,6 +53,67 @@ function init() {
 
   // 8. Menus (Main Menu, Pause Menu, shared Settings/Credits)
   setupMenus();
+  setupTutorial();
+}
+
+/* -------- Tutorial / Onboarding (shown once, first time playing) -------- */
+let tutorialStep = 1;
+let tutorialTotalSteps = 4;
+let tutorialOnComplete = null;
+
+function setupTutorial() {
+  const modal = document.getElementById('modal-tutorial');
+  if (!modal) return;
+
+  const steps = Array.from(modal.querySelectorAll('.tutorial-step'));
+  const dots = Array.from(modal.querySelectorAll('.tutorial-dot'));
+  const nextBtn = document.getElementById('btn-tutorial-next');
+  const closeBtn = document.getElementById('btn-close-tutorial');
+  tutorialTotalSteps = steps.length || 4;
+
+  const showStep = (n) => {
+    steps.forEach(s => s.classList.toggle('active', Number(s.dataset.step) === n));
+    dots.forEach(d => d.classList.toggle('active', Number(d.dataset.dot) === n));
+    nextBtn.innerHTML = n >= tutorialTotalSteps
+      ? 'Mulai Main! <i class="fa-solid fa-play"></i>'
+      : 'Lanjut <i class="fa-solid fa-arrow-right"></i>';
+  };
+
+  const finishTutorial = () => {
+    storage.markTutorialSeen();
+    modal.classList.add('hidden');
+    audio.playButtonClick();
+    const cb = tutorialOnComplete;
+    tutorialOnComplete = null;
+    if (cb) cb();
+  };
+
+  nextBtn.addEventListener('click', () => {
+    audio.playButtonClick();
+    if (tutorialStep >= tutorialTotalSteps) {
+      finishTutorial();
+    } else {
+      tutorialStep++;
+      showStep(tutorialStep);
+    }
+  });
+
+  closeBtn?.addEventListener('click', finishTutorial);
+  modal.addEventListener('click', (e) => {
+    if (e.target === modal) finishTutorial();
+  });
+}
+
+function openTutorial(onComplete) {
+  const modal = document.getElementById('modal-tutorial');
+  if (!modal) { if (onComplete) onComplete(); return; }
+  tutorialStep = 1;
+  tutorialOnComplete = onComplete;
+  modal.querySelectorAll('.tutorial-step').forEach(s => s.classList.toggle('active', s.dataset.step === '1'));
+  modal.querySelectorAll('.tutorial-dot').forEach(d => d.classList.toggle('active', d.dataset.dot === '1'));
+  const nextBtn = document.getElementById('btn-tutorial-next');
+  if (nextBtn) nextBtn.innerHTML = 'Lanjut <i class="fa-solid fa-arrow-right"></i>';
+  modal.classList.remove('hidden');
 }
 
 /* -------- Post-menu game start sequence (profile setup, popups) -------- */
@@ -97,7 +158,11 @@ function setupMenus() {
   const enterGame = () => {
     mainMenu.classList.add('hidden');
     gamePaused = false;
-    startGameFlow();
+    if (!storage.hasSeenTutorial()) {
+      openTutorial(() => startGameFlow());
+    } else {
+      startGameFlow();
+    }
   };
   document.getElementById('btn-menu-start')?.addEventListener('click', enterGame);
 
@@ -200,6 +265,10 @@ function setupMenus() {
     playerController.setSensitivity(CAMERA_SENSITIVITY_MAP.tinggi);
     audio.playButtonClick();
     syncSettingsUI();
+  });
+
+  document.getElementById('settings-language')?.addEventListener('change', () => {
+    audio.playButtonClick();
   });
 
   // Shared Credits panel

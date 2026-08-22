@@ -176,6 +176,13 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 .hud-cast-btn:active { transform: scale(0.92) rotate(-1deg); }
 
+/* Visual cue: subtle breathing glow while the cast button is idle/pressable */
+@keyframes castIdlePulse {
+    0%, 100% { box-shadow: 0 6px 24px rgba(76,175,80,0.4); }
+    50%      { box-shadow: 0 6px 24px rgba(76,175,80,0.4), 0 0 0 9px rgba(76,175,80,0.16); }
+}
+.hud-cast-btn.idle-pulse { animation: castIdlePulse 2.2s ease-in-out infinite; }
+
 /* ===================================
    VIRTUAL JOYSTICK (mobile)
    =================================== */
@@ -544,6 +551,33 @@ canvas { display: block; width: 100%; height: 100%; }
 }
 .challenge-ig-link { color: #7c2d12; text-decoration: underline; font-weight: 800; }
 
+/* Tutorial / Onboarding modal */
+.tutorial-box { text-align: center; }
+.tutorial-steps {
+    position: relative; min-height: 210px;
+    display: flex; align-items: center; justify-content: center;
+    margin-bottom: 16px;
+}
+.tutorial-step {
+    display: none; flex-direction: column; align-items: center; gap: 10px;
+    padding: 6px 10px; animation: tutorialFadeIn 0.35s ease;
+}
+.tutorial-step.active { display: flex; }
+@keyframes tutorialFadeIn {
+    from { opacity: 0; transform: translateY(10px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+.tutorial-step-icon { font-size: 46px; }
+.tutorial-step h3 { font-family: var(--font-display); font-size: 17px; font-weight: 700; color: #4FD1C5; }
+.tutorial-step p { font-size: 13px; color: rgba(255,255,255,0.8); line-height: 1.55; max-width: 320px; }
+.tutorial-dots { display: flex; justify-content: center; gap: 8px; margin-bottom: 18px; }
+.tutorial-dot {
+    width: 8px; height: 8px; border-radius: 50%;
+    background: rgba(255,255,255,0.25);
+    transition: background 0.2s ease, transform 0.2s ease;
+}
+.tutorial-dot.active { background: #4FD1C5; transform: scale(1.3); }
+
 /* Scrollbars */
 .modal-box::-webkit-scrollbar { width: 6px; }
 .modal-box::-webkit-scrollbar-thumb { background: rgba(79,209,197,0.4); border-radius: 10px; }
@@ -740,6 +774,12 @@ canvas { display: block; width: 100%; height: 100%; }
     font-size: 11px; font-weight: 700; cursor: pointer;
 }
 .settings-seg-btn.active { background: rgba(79,209,197,0.3); color: #fff; }
+.settings-select {
+    padding: 7px 14px; border-radius: 20px; border: 2px solid rgba(79,209,197,0.4);
+    background: rgba(79,209,197,0.15); color: #4FD1C5; font-weight: 800; font-size: 11px;
+    font-family: var(--font-body); cursor: pointer;
+}
+.settings-select:focus { outline: none; border-color: #4FD1C5; }
 .settings-info-block { margin-top: 14px; font-size: 11px; color: rgba(255,255,255,0.6); line-height: 1.6; }
 .settings-info-block strong { color: rgba(255,255,255,0.85); font-size: 12px; display: block; margin-bottom: 4px; }
 

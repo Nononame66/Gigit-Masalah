@@ -32,8 +32,8 @@ const MISSION_TEMPLATES = [
 ];
 
 const DEFAULT_STATE = {
-  coins: 489,
-  level: 1,
+  coins: 5000,
+  level: 99,
   xp: 0,
   maxXp: 100,
   equippedRod: 'rod_wooden',
@@ -57,6 +57,7 @@ const DEFAULT_STATE = {
   soundEnabled: true,
   graphicsQuality: 'high',
   cameraSensitivity: 'sedang', // 'rendah' | 'sedang' | 'tinggi'
+  tutorialSeen: false,
   playerName: null,
   playerAvatar: null
 };
@@ -315,6 +316,15 @@ export class StorageManager {
     this.state.cameraSensitivity = ['rendah', 'sedang', 'tinggi'].includes(level) ? level : 'sedang';
     this.save();
     return this.state.cameraSensitivity;
+  }
+
+  hasSeenTutorial() {
+    return !!this.state.tutorialSeen;
+  }
+
+  markTutorialSeen() {
+    this.state.tutorialSeen = true;
+    this.save();
   }
 }
 

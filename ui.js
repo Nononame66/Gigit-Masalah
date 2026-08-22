@@ -393,11 +393,13 @@ export class UIManager {
   onAimingStart() {
     this.castMeterContainer.classList.remove('hidden');
     this.castBtnText.textContent = 'LEPAS UNTUK LEMPAR';
+    this.btnCast.classList.remove('idle-pulse');
   }
 
   onAimingEnd() {
     this.castMeterContainer.classList.add('hidden');
     this.castBtnText.textContent = 'LEMPAR KAIL';
+    this.btnCast.classList.add('idle-pulse');
   }
 
   updateCastPower(percent) {
