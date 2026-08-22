@@ -214,6 +214,7 @@ export class GameEnvironment {
 
     this.player = createVoxelPlayer();
     this.player.position.set(0, 1.8, 4.0);
+    this.player.rotation.y = Math.PI / 2; // face sideways off the dock, toward open water
     this.scene.add(this.player);
 
     this.currentRodType = 'rod_wooden';
@@ -455,12 +456,24 @@ export class GameEnvironment {
     this.triggerSplash(new THREE.Vector3(x, 0, z));
   }
 
+  /* ── Shared land/water check — used by casting validation and boat
+     collision so both agree on exactly the same land footprint ──── */
+  isWaterAt(x, z) {
+    const ISLAND = { minX: -18, maxX: 18, minZ: -22, maxZ: 2 };
+    const PIER   = { minX: -1.6, maxX: 1.6, minZ: -2, maxZ: 24 };
+    const inside = (r) => x >= r.minX && x <= r.maxX && z >= r.minZ && z <= r.maxZ;
+    return !inside(ISLAND) && !inside(PIER);
+  }
+
   /* ── Rideable boat — docked beside the pier at start. Its x/z are
      driven by PlayerController while boarded; here we only handle the
      idle bob/roll so it always looks alive on the water ─────────── */
   setupBoat() {
     this.boat = createVoxelBoat();
-    this.boat.position.set(2.6, 0, 4.5);
+    // (2.5, 0, 18) sits just off the side of the pier's far end — clear
+    // of the island box (z ≤ 2), the beach slabs (z 0-10), and the pier
+    // deck itself (x ±1.6) — genuinely open water, not land.
+    this.boat.position.set(2.5, 0, 18);
     this.boat.rotation.y = Math.PI / 2;
     this.scene.add(this.boat);
   }

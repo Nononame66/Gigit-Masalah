@@ -38,7 +38,7 @@ export class PlayerController {
     /* ── Boat mode ──────────────────────────────────────── */
     this.boat        = env.boat;
     this.isOnBoat     = false;
-    this.boardDistance = 2.4;
+    this.boardDistance = 3.0;
     this.boatSpeed     = 0;      // current forward speed (with inertia)
     this.boatMaxSpeed  = 9;
     this.boatAccel     = 6;
@@ -261,17 +261,14 @@ export class PlayerController {
 
   /* ── Boat: sailable-water bounds + solid land/dock collision ──── */
   resolveBoatCollision(nx, nz) {
-    const WORLD  = { minX: -70, maxX: 70,  minZ: -15, maxZ: 130 }; // sailable area
-    const ISLAND = { minX: -18, maxX: 18,  minZ: -22, maxZ: 2   }; // solid landmass
-    const PIER   = { minX: -1.6, maxX: 1.6, minZ: -2, maxZ: 24  }; // solid dock
+    const WORLD = { minX: -70, maxX: 70, minZ: -15, maxZ: 130 }; // sailable area
 
     let blocked = false;
     let x = THREE.MathUtils.clamp(nx, WORLD.minX, WORLD.maxX);
     let z = THREE.MathUtils.clamp(nz, WORLD.minZ, WORLD.maxZ);
     if (x !== nx || z !== nz) blocked = true;
 
-    const insideRect = (px, pz, r) => px >= r.minX && px <= r.maxX && pz >= r.minZ && pz <= r.maxZ;
-    if (insideRect(x, z, ISLAND) || insideRect(x, z, PIER)) {
+    if (!this.env.isWaterAt(x, z)) {
       // Simple "bump" collision — cancel movement into solid land/dock
       // rather than trying to compute a wall slide.
       blocked = true;

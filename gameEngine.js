@@ -79,6 +79,24 @@ export class GameEngine {
   releaseCast() {
     if (this.state !== GAME_STATE.AIMING) return;
 
+    // Compute where the cast would actually land BEFORE committing to it.
+    const distance = 6 + (this.castPower / 100) * 18;
+    const forwardX = Math.sin(this.env.player.rotation.y);
+    const forwardZ = Math.cos(this.env.player.rotation.y);
+    const landX = this.env.player.position.x + forwardX * distance;
+    const landZ = this.env.player.position.z + forwardZ * distance;
+
+    // Fishing only works if the line actually lands in water — cancel
+    // and refund the bait if the cast would land on the pier/island.
+    if (this.env.isWaterAt && !this.env.isWaterAt(landX, landZ)) {
+      this.state = GAME_STATE.IDLE;
+      this.ui.onAimingEnd();
+      storage.addBait(storage.state.equippedBait, 1); // refund the bait startAiming() consumed
+      this.ui.showAlert('Nggak ada air di sana! Hadap ke arah sungai/laut.', '🚫');
+      audio.playButtonClick();
+      return;
+    }
+
     // Determine cast quality based on power
     if (this.castPower >= 99 && this.castPower <= 100) {
       this.castQuality = 'PERFECT!';
@@ -99,15 +117,7 @@ export class GameEngine {
     this.ui.showCastQuality(this.castQuality);
     audio.playCast();
 
-    const distance = 6 + (this.castPower / 100) * 18;
-    const forwardX = Math.sin(this.env.player.rotation.y);
-    const forwardZ = Math.cos(this.env.player.rotation.y);
-
-    this.targetBobberPos.set(
-      this.env.player.position.x + forwardX * distance,
-      0,
-      this.env.player.position.z + forwardZ * distance
-    );
+    this.targetBobberPos.set(landX, 0, landZ);
 
     this.castProgress = 0;
     this.castStartPos = this.env.getRodTipWorldPosition();
