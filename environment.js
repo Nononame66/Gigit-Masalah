@@ -76,6 +76,10 @@ export class GameEnvironment {
     this.setupWater();
     this.setupPierAndPlayer();
     this.setupIslandScenery();
+    this.setupReef();
+    this.setupPierLanterns();
+    this.setupBirds();
+    this.setupJumpingFish();
     this.setupFishingLine();
     this.setupParticles();
     this.setupSplashRing();
@@ -368,6 +372,87 @@ export class GameEnvironment {
     this.scene.add(this.clouds);
   }
 
+  /* ── Small reef clusters scattered in the far water — static,
+     no per-frame cost, just makes the sea feel less empty ──────── */
+  setupReef() {
+    const reefMat = new THREE.MeshStandardMaterial({ color: 0x5c7c85, roughness: 0.85, flatShading: true });
+    const mossMat = new THREE.MeshStandardMaterial({ color: 0x3f6b52, roughness: 0.9, flatShading: true });
+    const reefSpots = [
+      [-14, 0.25, 42], [16, 0.2, 48], [-6, 0.3, 55],
+      [9, 0.22, 60], [-20, 0.25, 65], [4, 0.25, 70]
+    ];
+    reefSpots.forEach(([x, y, z]) => {
+      const rock = new THREE.Mesh(new THREE.IcosahedronGeometry(0.9 + Math.random() * 0.7, 0), reefMat);
+      rock.position.set(x, y, z);
+      rock.scale.set(1, 0.55 + Math.random() * 0.3, 1);
+      rock.rotation.y = Math.random() * Math.PI;
+      this.scene.add(rock);
+      if (Math.random() < 0.6) {
+        const moss = new THREE.Mesh(new THREE.IcosahedronGeometry(0.32, 0), mossMat);
+        moss.position.set(x + (Math.random() - 0.5) * 0.6, y + 0.45, z + (Math.random() - 0.5) * 0.6);
+        this.scene.add(moss);
+      }
+    });
+  }
+
+  /* ── Lantern posts along the pier — one shared emissive material,
+     brightness driven by the day/night cycle in update() ──────── */
+  setupPierLanterns() {
+    const postMat = new THREE.MeshStandardMaterial({ color: 0x3f2e1c, roughness: 0.8, flatShading: true });
+    this.lanternMat = new THREE.MeshStandardMaterial({
+      color: 0xffd28a, emissive: 0xffb347, emissiveIntensity: 0, roughness: 0.4
+    });
+    [4, 12, 20].forEach(z => {
+      [-1.35, 1.35].forEach(x => {
+        const post = new THREE.Mesh(new THREE.CylinderGeometry(0.04, 0.05, 1.1, 6), postMat);
+        post.position.set(x, 2.1, z);
+        this.scene.add(post);
+        const lamp = new THREE.Mesh(new THREE.IcosahedronGeometry(0.09, 0), this.lanternMat);
+        lamp.position.set(x, 2.72, z);
+        this.scene.add(lamp);
+      });
+    });
+  }
+
+  /* ── A few birds looping in the sky — cheap (4 meshes), hidden at
+     night and on Low graphics to keep things light ──────────────── */
+  setupBirds() {
+    const birdMat = new THREE.MeshStandardMaterial({ color: 0x2b2b2b, flatShading: true, roughness: 0.6 });
+    this.birds = [];
+    for (let i = 0; i < 4; i++) {
+      const bird = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.4, 3), birdMat);
+      bird.rotation.x = Math.PI / 2;
+      bird.scale.set(1, 1, 0.25);
+      bird.userData = {
+        radius: 30 + Math.random() * 15,
+        height: 20 + Math.random() * 8,
+        speed: 0.15 + Math.random() * 0.1,
+        offset: Math.random() * Math.PI * 2
+      };
+      this.scene.add(bird);
+      this.birds.push(bird);
+    }
+  }
+
+  /* ── Occasional fish jumping out of the water in the distance —
+     purely decorative, reuses the existing splash effect ─────────── */
+  setupJumpingFish() {
+    this.jumpFishMat = new THREE.MeshStandardMaterial({ color: 0x38bdf8, flatShading: true, roughness: 0.4 });
+    this.activeJumpFish = null;
+    this.fishJumpTimer = 6 + Math.random() * 10;
+  }
+
+  triggerFishJump() {
+    const x = (Math.random() - 0.5) * 40;
+    const z = 14 + Math.random() * 45;
+    const mesh = new THREE.Mesh(new THREE.ConeGeometry(0.12, 0.5, 4), this.jumpFishMat);
+    mesh.rotation.z = Math.PI / 2;
+    mesh.position.set(x, 0, z);
+    this.scene.add(mesh);
+    this.activeJumpFish = { mesh, elapsed: 0, duration: 0.9, x, z };
+    this.triggerSplash(new THREE.Vector3(x, 0, z));
+  }
+
   setupFishingLine() {
     const n = 20;
     const geo = new THREE.BufferGeometry();
@@ -532,6 +617,46 @@ export class GameEnvironment {
 
     this.sky.material.uniforms.topColor.value.copy(skyTop);
     this.sky.material.uniforms.bottomColor.value.copy(skyBottom);
+
+    // Pier lanterns glow warmer as it gets darker (single shared material)
+    if (this.lanternMat) {
+      this.lanternMat.emissiveIntensity = THREE.MathUtils.clamp((1 - this.dayFactor) * 1.6, 0, 1.4);
+    }
+
+    // Birds — simple circular flight path, resting at night / Low graphics
+    if (this.birds) {
+      const birdsActive = !this.isNight && !this.isLowGraphics;
+      this.birds.forEach(bird => {
+        bird.visible = birdsActive;
+        if (!birdsActive) return;
+        const { radius, height, speed, offset } = bird.userData;
+        const t = time * speed + offset;
+        bird.position.set(Math.cos(t) * radius, height + Math.sin(t * 2) * 1.5, Math.sin(t) * radius - 10);
+        bird.rotation.y = -t + Math.PI / 2;
+      });
+    }
+
+    // Occasional fish jump out in the water (skipped on Low graphics)
+    if (!this.isLowGraphics) {
+      this.fishJumpTimer -= delta;
+      if (this.fishJumpTimer <= 0 && !this.activeJumpFish) {
+        this.triggerFishJump();
+        this.fishJumpTimer = 8 + Math.random() * 14;
+      }
+      if (this.activeJumpFish) {
+        const jf = this.activeJumpFish;
+        jf.elapsed += delta;
+        const p = Math.min(1, jf.elapsed / jf.duration);
+        jf.mesh.position.y = Math.sin(p * Math.PI) * 1.6;
+        jf.mesh.rotation.x = p * Math.PI * 1.4;
+        if (p >= 1) {
+          this.scene.remove(jf.mesh);
+          jf.mesh.geometry.dispose();
+          this.triggerSplash(new THREE.Vector3(jf.x, 0, jf.z));
+          this.activeJumpFish = null;
+        }
+      }
+    }
 
     // Water ripple — full smoothness every frame on High graphics.
     // On Low graphics, only recompute every 3rd frame: the sine-based
