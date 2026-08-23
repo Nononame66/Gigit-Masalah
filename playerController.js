@@ -49,6 +49,7 @@ export class PlayerController {
     this.boatPromptBtn   = document.getElementById('btn-boat-interact');
     this.boatPromptLabel = document.getElementById('boat-interact-label');
     this.boatPromptBtn?.addEventListener('click', () => this.handleBoatInteract());
+    this.boatBonusBadge  = document.getElementById('boat-bonus-badge');
 
     this.setupInputListeners();
   }
@@ -165,6 +166,8 @@ export class PlayerController {
   }
 
   update(delta, canMove = true) {
+    this.env.playerOnBoat = this.isOnBoat;
+
     if (this.isOnBoat) {
       this.updateBoat(delta, canMove);
       this.updateBoatPrompt();
@@ -293,6 +296,8 @@ export class PlayerController {
     this.isOnBoat = true;
     this.boatSpeed = 0;
     audio.playButtonClick();
+    this.ui?.showAlert('Di laut lepas! Peluang ikan langka naik 🌊', '⛵');
+    this.boatBonusBadge?.classList.remove('hidden');
     return true;
   }
 
@@ -319,6 +324,7 @@ export class PlayerController {
     this.isGrounded = true;
     this.velocityY = 0;
     audio.playButtonClick();
+    this.boatBonusBadge?.classList.add('hidden');
     return true;
   }
 

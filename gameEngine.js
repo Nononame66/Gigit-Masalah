@@ -247,10 +247,17 @@ export class GameEngine {
     // Bait can improve the chance of fish without making fish common.
     const fishBoost = bait === 'glowing' ? 1.5 : bait === 'golden' ? 2.2 : bait === 'magnet' ? 3.0 : 1;
 
-    const weighted = lootTable.map(item => ({
-      ...item,
-      weight: item.type === 'fish' ? item.chance * fishBoost : item.chance
-    }));
+    // Fishing from the boat out on open water gives rarer fish an extra,
+    // escalating chance boost — this is what gives the boat an actual
+    // gameplay reason to exist, not just a way to get around.
+    const onBoat = !!(this.env && this.env.playerOnBoat);
+    const BOAT_RARITY_BOOST = { Common: 1.0, Rare: 1.3, Epic: 1.7, Legendary: 2.1, Mythic: 2.6 };
+
+    const weighted = lootTable.map(item => {
+      if (item.type !== 'fish') return { ...item, weight: item.chance };
+      const rarityBoost = onBoat ? (BOAT_RARITY_BOOST[item.rarity] || 1) : 1;
+      return { ...item, weight: item.chance * fishBoost * rarityBoost };
+    });
 
     const total = weighted.reduce((sum, item) => sum + item.weight, 0);
     let roll = Math.random() * total;
