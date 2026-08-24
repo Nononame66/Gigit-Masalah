@@ -120,6 +120,7 @@ export class UIManager {
     // that never stopped).
     this._previewRenderer = null;
     this._previewAnimId = null;
+    this._catchStealTimeout = null;
   }
 
   setupEventListeners() {
@@ -293,6 +294,7 @@ export class UIManager {
     document.getElementById('btn-sell-fish').addEventListener('click', () => {
       const engine = this.getEngine();
       if (engine.caughtFish) {
+        this.clearCatchSteal();
         storage.removeFromInventory(engine.caughtFish.id);
         storage.addCoins(engine.caughtFish.price);
         storage.progressDailyMission('sell_fish', 1);
@@ -305,6 +307,7 @@ export class UIManager {
 
     document.getElementById('btn-keep-fish').addEventListener('click', () => {
       const engine = this.getEngine();
+      this.clearCatchSteal();
       audio.playButtonClick();
       this.showAlert('Disimpan ke Tas Barang! 🎒', '✅');
       this.closeModal('modal-catch');
@@ -490,9 +493,22 @@ export class UIManager {
     document.getElementById('catch-xp').textContent = `+${fish.xpReward} XP`;
     document.getElementById('catch-desc').textContent = fish.desc;
 
+    // "Boss tier" = any Legendary/Mythic catch. The two specific Mythic
+    // species (isChallengeWin) additionally get the real IG-contest
+    // banner; every other Legendary/Mythic still gets the bigger
+    // celebration treatment, just with a lighter in-game-only badge.
+    const isBossTier = !fish.isJunk && (fish.rarity === 'Legendary' || fish.rarity === 'Mythic');
+
     const jackpotBanner = document.getElementById('catch-jackpot-banner');
     jackpotBanner.classList.toggle('hidden', !fish.isChallengeWin);
-    if (fish.isChallengeWin) audio.playCatchFanfare();
+
+    const bossBadge = document.getElementById('catch-boss-badge');
+    bossBadge.classList.toggle('hidden', !(isBossTier && !fish.isChallengeWin));
+
+    if (fish.isChallengeWin || isBossTier) {
+      audio.playCatchFanfare();
+      this.flashCelebration();
+    }
 
     const weightStat = document.getElementById('catch-weight-stat');
     const conditionStat = document.getElementById('catch-condition-stat');
@@ -519,7 +535,54 @@ export class UIManager {
     const box = modal.querySelector('.modal-box');
     box.classList.remove('catch-reveal', 'catch-reveal-jackpot');
     void box.offsetWidth; // force reflow so the animation can replay
-    box.classList.add(fish.isChallengeWin ? 'catch-reveal-jackpot' : 'catch-reveal');
+    box.classList.add((fish.isChallengeWin || isBossTier) ? 'catch-reveal-jackpot' : 'catch-reveal');
+
+    // Arm the "bird steals it" risk for common/junk catches left sitting
+    // in this modal too long (see armCatchSteal for the rarity gate).
+    this.armCatchSteal(fish);
+  }
+
+  flashCelebration() {
+    const flash = document.getElementById('celebration-flash');
+    if (!flash) return;
+    flash.classList.remove('flash-active');
+    void flash.offsetWidth;
+    flash.classList.add('flash-active');
+  }
+
+  /* ── "Burung nyolong ikan" — a comedic low-stakes risk: leave a
+     junk/Common catch sitting unclaimed too long and a bird swipes it
+     before you can sell/keep it. Never applies to Rare+ catches. ──── */
+  armCatchSteal(fish) {
+    this.clearCatchSteal();
+    const stealable = fish.isJunk || fish.rarity === 'Common';
+    if (!stealable) return;
+
+    const delay = 9000 + Math.random() * 6000; // 9–15s of "lengah"
+    this._catchStealTimeout = setTimeout(() => this.stealCatch(fish), delay);
+  }
+
+  clearCatchSteal() {
+    if (this._catchStealTimeout) {
+      clearTimeout(this._catchStealTimeout);
+      this._catchStealTimeout = null;
+    }
+  }
+
+  stealCatch(fish) {
+    const modal = document.getElementById('modal-catch');
+    if (!modal || modal.classList.contains('hidden')) return; // already handled
+
+    // The bird only grabs the physical item — the catch still counted
+    // toward XP/missions/achievements, it's just gone before it could
+    // be sold or kept.
+    storage.removeFromInventory(fish.id, 1);
+    this.updateHUD();
+
+    this.closeModal('modal-catch'); // also stops the 3D preview loop
+    this.getEngine()?.resetToIdle();
+
+    this.showAlert('🐦 Ikannya dicolong burung pas kamu lengah!', '🐦');
   }
 
   async renderFish3DPreview(fish) {
