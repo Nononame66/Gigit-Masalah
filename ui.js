@@ -9,6 +9,9 @@ import { FISH_SPECIES, createVoxelFishModel, createVoxelJunkModel } from './voxe
 import { tryLoadCustomModelFor } from './modelLoader.js';
 import { t } from './i18n.js';
 
+box.style.setProperty('--tilt', (Math.random()*1.4-0.7).toFixed(2)+'deg');
+
+
 export const SHOP_RODS = [
   { 
     id: 'rod_wooden', 
