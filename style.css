@@ -339,6 +339,36 @@ canvas { display: block; width: 100%; height: 100%; }
 @keyframes biteShake { 0%, 100% { transform: translateX(-50%) rotate(0deg); } 25% { transform: translateX(-50%) rotate(-2deg); } 75% { transform: translateX(-50%) rotate(2deg); } }
 
 /* ===================================
+   TOAST NOTIFICATION
+   General alerts (info/success/error) — small, sits below the HUD
+   top-right buttons instead of a giant banner blocking the screen.
+   =================================== */
+.toast-notification {
+    position: fixed; top: 78px; right: 20px;
+    z-index: 140; display: flex; align-items: center; gap: 10px;
+    padding: 12px 18px; max-width: 260px;
+    background: linear-gradient(135deg, rgba(11,40,54,0.96), rgba(18,59,77,0.96));
+    border-radius: 14px; border: 2px solid rgba(79,209,197,0.4);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.45);
+    opacity: 0; transform: translateX(24px);
+    pointer-events: none;
+    transition: opacity 0.25s ease, transform 0.25s ease;
+}
+.toast-notification.toast-show {
+    opacity: 1; transform: translateX(0);
+}
+.toast-notification.toast-error   { border-color: rgba(239,68,68,0.6); }
+.toast-notification.toast-success { border-color: rgba(76,175,80,0.6); }
+.toast-icon { font-size: 19px; flex-shrink: 0; }
+.toast-message { font-size: 12.5px; font-weight: 700; line-height: 1.4; color: #fff; }
+
+@media (max-width: 700px) {
+    .toast-notification { top: 60px; right: 12px; max-width: 210px; padding: 10px 14px; }
+    .toast-icon { font-size: 16px; }
+    .toast-message { font-size: 11px; }
+}
+
+/* ===================================
    REELING MINIGAME
    =================================== */
 .reel-wrap {

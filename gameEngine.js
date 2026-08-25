@@ -325,17 +325,28 @@ export class GameEngine {
   update(delta) {
     // Auto cast logic
     if (this.autoCastEnabled && this.state === GAME_STATE.IDLE) {
-      this.autoCastDelay += delta;
-      if (this.autoCastDelay >= 1.0) {
-        this.autoCastDelay = 0;
-        this.startAiming();
-        // Auto release at random power (60-90%)
-        setTimeout(() => {
-          if (this.state === GAME_STATE.AIMING) {
-            this.castPower = 60 + Math.random() * 30;
-            this.releaseCast();
-          }
-        }, 200 + Math.random() * 300);
+      const baitLeft = storage.state.baits[storage.state.equippedBait] || 0;
+
+      if (baitLeft <= 0) {
+        // Don't keep retrying startAiming() every second — that spammed
+        // the same "out of bait" alert forever. Turn auto-cast off once
+        // and tell the player clearly instead.
+        this.autoCastEnabled = false;
+        this.ui.setAutoCastButtonState?.(false);
+        this.ui.showAlert('UMPAN HABIS! Auto-Cast dimatikan.', '⚠️');
+      } else {
+        this.autoCastDelay += delta;
+        if (this.autoCastDelay >= 1.0) {
+          this.autoCastDelay = 0;
+          this.startAiming();
+          // Auto release at random power (60-90%)
+          setTimeout(() => {
+            if (this.state === GAME_STATE.AIMING) {
+              this.castPower = 60 + Math.random() * 30;
+              this.releaseCast();
+            }
+          }, 200 + Math.random() * 300);
+        }
       }
     }
 

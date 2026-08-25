@@ -167,6 +167,7 @@ export function t(key) {
  *  include simple markup (e.g. <kbd> tags in the hint banner). */
 export function applyLanguage(lang) {
   const dict = translations[lang] || translations.id;
+  document.documentElement.lang = lang === 'en' ? 'en' : 'id';
   document.querySelectorAll('[data-i18n]').forEach(el => {
     const key = el.getAttribute('data-i18n');
     if (dict[key] !== undefined) el.innerHTML = dict[key];

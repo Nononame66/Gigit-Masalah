@@ -167,10 +167,12 @@ export class StorageManager {
   }
 
   equipBait(baitId) {
-    if (this.state.baits[baitId] !== undefined) {
+    if (this.state.baits[baitId] !== undefined && this.state.baits[baitId] > 0) {
       this.state.equippedBait = baitId;
       this.save();
+      return true;
     }
+    return false;
   }
 
   recordFishCatch(fishId, weight) {

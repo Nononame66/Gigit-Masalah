@@ -122,6 +122,7 @@ export class UIManager {
     this._previewRenderer = null;
     this._previewAnimId = null;
     this._catchStealTimeout = null;
+    this._toastTimeout = null;
   }
 
   setupEventListeners() {
@@ -161,11 +162,14 @@ export class UIManager {
     }
 
     window.addEventListener('keydown', (e) => {
-      if (e.code === 'Space' && !e.repeat) {
+      if (e.code === 'Space' && !e.repeat && !e.target.closest('input, textarea')) {
         handleCastStart(e);
       }
     });
     window.addEventListener('keyup', (e) => {
+      // Always allowed to resolve an in-progress cast, even if focus
+      // happens to be in an input (e.g. the profile modal auto-opening
+      // mid-hold) — otherwise AIMING state could get stuck forever.
       if (e.code === 'Space') {
         handleCastEnd(e);
       }
@@ -323,6 +327,11 @@ export class UIManager {
     return this.isReelInput;
   }
 
+  setAutoCastButtonState(enabled) {
+    const slotAuto = document.getElementById('slot-auto');
+    if (slotAuto) slotAuto.classList.toggle('active', enabled);
+  }
+
   getCurrentRodStats() {
     const rodId = storage.state.equippedRod;
     const rod = SHOP_RODS.find(r => r.id === rodId);
@@ -459,6 +468,7 @@ export class UIManager {
   hideReelingMinigame() {
     this.reelingContainer.classList.add('hidden');
     this.castBtnText.textContent = t('hud_cast_idle');
+    this.tensionFill.classList.remove('danger-pulse');
   }
 
   updateReelHUD(playerPos, targetPos, progress, tension) {
@@ -476,13 +486,21 @@ export class UIManager {
   }
 
   showAlert(msg, icon = 'ℹ️') {
-    this.statusMessage.textContent = msg;
-    this.statusIcon.textContent = icon;
-    this.statusAlert.classList.remove('hidden');
+    const toast = document.getElementById('toast-notification');
+    if (!toast) return;
 
-    setTimeout(() => {
-      this.statusAlert.classList.add('hidden');
-    }, 2200);
+    let type = 'info';
+    if (icon === '❌' || icon === '⚠️' || icon === '🚫') type = 'error';
+    else if (icon === '✅' || icon === '🎉' || icon === '🏅' || icon === '⭐' || icon === '👋') type = 'success';
+
+    document.getElementById('toast-icon').textContent = icon;
+    document.getElementById('toast-message').textContent = msg;
+    toast.className = `toast-notification toast-show toast-${type}`;
+
+    if (this._toastTimeout) clearTimeout(this._toastTimeout);
+    this._toastTimeout = setTimeout(() => {
+      toast.classList.remove('toast-show');
+    }, 2600);
   }
 
   showCatchModal(fish) {
@@ -785,7 +803,11 @@ export class UIManager {
         </div>
         <div class="item-action">
           <button class="hd-btn gold-btn buy-bait-btn" data-id="${bait.id}"><i class="fa-solid fa-coins"></i> ${bait.price}</button>
-          ${!isEquipped ? `<button class="hd-btn secondary-btn equip-bait-btn" data-id="${bait.id}">PAKAI</button>` : '<span style="font-size:0.75rem; font-weight:800; color:#10b981;">AKTIF</span>'}
+          ${!isEquipped
+            ? (currentCount > 0
+                ? `<button class="hd-btn secondary-btn equip-bait-btn" data-id="${bait.id}">PAKAI</button>`
+                : '<button class="hd-btn secondary-btn" disabled>HABIS</button>')
+            : '<span style="font-size:0.75rem; font-weight:800; color:#10b981;">AKTIF</span>'}
         </div>
       `;
       container.appendChild(card);

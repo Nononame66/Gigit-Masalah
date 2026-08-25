@@ -203,12 +203,22 @@ export function createVoxelRod(rodType = 'rod_wooden') {
   shaft.castShadow = true;
   group.add(shaft);
 
-  // Line guide rings spaced along the blank
+  // Line guide rings spaced along the blank — computed from the shaft's
+  // ACTUAL transform (center + half-height + rotation) so they sit on
+  // its surface, instead of an independently-guessed offset that drifted
+  // ~0.14 units off the real centerline.
+  const shaftHalfHeight = 1.2; // half of the shaft's CylinderGeometry height (2.4)
+  const shaftAngle = Math.PI / 4;
   const guidePositions = [0.35, 0.75, 1.15, 1.55, 1.9];
-  guidePositions.forEach((t, i) => {
+  guidePositions.forEach((dist, i) => {
     const radius = 0.028 - (i / guidePositions.length) * 0.014;
     const ring = new THREE.Mesh(new THREE.TorusGeometry(radius, 0.006, 4, 8), getHDMaterial(C_ACCENT, 0.3, 0.5));
-    ring.position.set(0, 0.15 + t * Math.cos(Math.PI / 4), t * Math.sin(Math.PI / 4) - 0.05);
+    const u = (dist / shaftHalfHeight) - 1; // -1 at grip end, +1 at tip
+    ring.position.set(
+      0,
+      1.2 + u * shaftHalfHeight * Math.cos(shaftAngle),
+      0.8 + u * shaftHalfHeight * Math.sin(shaftAngle)
+    );
     ring.rotation.x = Math.PI / 2.3;
     group.add(ring);
   });

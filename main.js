@@ -313,6 +313,7 @@ function setupMenus() {
     pauseMenu.classList.add('hidden');
     mainMenu.classList.remove('hidden');
     gamePaused = true;
+    engine?.resetToIdle();
     audio.playButtonClick();
   });
 

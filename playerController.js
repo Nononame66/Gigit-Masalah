@@ -59,6 +59,17 @@ export class PlayerController {
     window.addEventListener('keydown', e => this.onKeyDown(e));
     window.addEventListener('keyup',   e => this.onKeyUp(e));
 
+    // If the window loses focus while a key is held (alt-tab, switching
+    // apps on mobile, etc), the browser won't deliver the matching keyup
+    // event — without this, the character would keep walking/jumping
+    // forever after the player comes back.
+    window.addEventListener('blur', () => {
+      this.keys.w = this.keys.a = this.keys.s = this.keys.d = this.keys.space = false;
+      this.isMouseDown = false;
+      this.joystickInput.x = 0;
+      this.joystickInput.y = 0;
+    });
+
     const c = document.getElementById('canvas-container');
 
     c.addEventListener('mousedown', e => {
@@ -81,6 +92,7 @@ export class PlayerController {
 
     c.addEventListener('touchstart', e => {
       if (e.touches.length === 1 &&
+          e.touches[0].clientX >= window.innerWidth * 0.5 &&
           !e.target.closest('#ui-overlay button,.modal-box,.fishit-hotbar,#joystick-container')) {
         this.isMouseDown = true;
         this.prevMouseX  = e.touches[0].clientX;
@@ -152,6 +164,7 @@ export class PlayerController {
   }
 
   onKeyDown(e) {
+    if (e.target.closest('input, textarea')) return;
     if (e.code==='KeyW'||e.code==='ArrowUp')    this.keys.w=true;
     if (e.code==='KeyS'||e.code==='ArrowDown')  this.keys.s=true;
     if (e.code==='KeyA'||e.code==='ArrowLeft')  this.keys.a=true;
@@ -159,6 +172,9 @@ export class PlayerController {
     if (e.code==='Space') this.keys.space=true;
   }
   onKeyUp(e) {
+    // Always allowed to clear, even if focus happens to be in an input —
+    // otherwise a key held down before focusing an input field could get
+    // stuck "true" forever, which is the exact class of bug we're fixing.
     if (e.code==='KeyW'||e.code==='ArrowUp')    this.keys.w=false;
     if (e.code==='KeyS'||e.code==='ArrowDown')  this.keys.s=false;
     if (e.code==='KeyA'||e.code==='ArrowLeft')  this.keys.a=false;
