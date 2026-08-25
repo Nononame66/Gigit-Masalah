@@ -13,11 +13,16 @@ import {
   createVoxelBobber,
   createVoxelPier,
   createVoxelTree,
-  createVoxelBoat
+  createVoxelBoat,
+  createNPCFisherman
 } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
 import { audio } from './audio.js';
 import { storage } from './storage.js';
+import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
+import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
+import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { OutputPass } from 'three/addons/postprocessing/OutputPass.js';
 
 /* -------- Palette (Low-Poly Stylized Islands) -------- */
 const PALETTE = {
@@ -64,6 +69,22 @@ export class GameEnvironment {
     this.container.appendChild(this.renderer.domElement);
     this.isLowGraphics = isLowGraphics;
 
+    // Bloom post-processing — makes emissive/bright things (pier lanterns
+    // at night, glowing Mythic fish, the cosmic rod) softly "bleed" light
+    // instead of being flat colors. Only actually used on High graphics;
+    // Low graphics renders straight to screen to stay fast on weak devices.
+    this.composer = new EffectComposer(this.renderer);
+    this.composer.setPixelRatio(this.renderer.getPixelRatio());
+    this.composer.addPass(new RenderPass(this.scene, this.camera));
+    this.bloomPass = new UnrealBloomPass(
+      new THREE.Vector2(window.innerWidth, window.innerHeight),
+      0.55, // strength
+      0.4,  // radius
+      0.85  // luminance threshold — only genuinely bright/emissive spots bloom
+    );
+    this.composer.addPass(this.bloomPass);
+    this.composer.addPass(new OutputPass());
+
     // Day/night cycle state — a full loop takes dayCycleDuration seconds.
     // Starts partway into "day" so the world looks normal immediately.
     this.dayCycleDuration = 240;
@@ -82,6 +103,7 @@ export class GameEnvironment {
     this.setupBirds();
     this.setupJumpingFish();
     this.setupBoat();
+    this.setupNPC();
     this.setupFishingLine();
     this.setupParticles();
     this.setupSplashRing();
@@ -487,6 +509,21 @@ export class GameEnvironment {
     this.scene.add(this.boat);
   }
 
+  /* ── Stationary NPC ("Nelayan Tua") sitting by the dock — placed at
+     (-2.5, z=1.5), which sits inside the island's real walkable
+     collision box (x:-18..18, z:-22..2). The visible beach sand
+     extends further than that box, so anywhere outside it would look
+     fine but be physically unreachable on foot. ─────────────────── */
+  setupNPC() {
+    this.npc = createNPCFisherman();
+    const nx = -2.5, nz = 1.5;
+    const ny = 1.8 + Math.sin(nx * 0.15) * Math.cos(nz * 0.12) * 0.5
+                    + Math.sin(nx * 0.28 + nz * 0.2) * 0.3;
+    this.npc.position.set(nx, ny, nz);
+    this.npc.rotation.y = Math.PI * 0.85; // facing roughly toward the pier/water
+    this.scene.add(this.npc);
+  }
+
   setupFishingLine() {
     const n = 20;
     const geo = new THREE.BufferGeometry();
@@ -754,13 +791,20 @@ export class GameEnvironment {
     }
   }
 
-  render() { this.renderer.render(this.scene, this.camera); }
+  render() {
+    if (this.isLowGraphics) {
+      this.renderer.render(this.scene, this.camera);
+    } else {
+      this.composer.render();
+    }
+  }
 
   setGraphicsQuality(quality) {
     const isLow = quality === 'low';
     this.isLowGraphics = isLow;
     this.renderer.shadowMap.enabled = !isLow;
     this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, isLow ? 1 : 2));
+    this.composer.setPixelRatio(this.renderer.getPixelRatio());
     if (isLow) {
       this.isRaining = false;
       this.rain.visible = false;
@@ -773,5 +817,6 @@ export class GameEnvironment {
     this.camera.aspect = window.innerWidth / window.innerHeight;
     this.camera.updateProjectionMatrix();
     this.renderer.setSize(window.innerWidth, window.innerHeight);
+    this.composer.setSize(window.innerWidth, window.innerHeight);
   }
 }

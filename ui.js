@@ -7,6 +7,7 @@ import { storage, ACHIEVEMENT_DEFS } from './storage.js';
 import { audio } from './audio.js';
 import { FISH_SPECIES, createVoxelFishModel, createVoxelJunkModel } from './voxelModels.js';
 import { tryLoadCustomModelFor } from './modelLoader.js';
+import { t } from './i18n.js';
 
 export const SHOP_RODS = [
   { 
@@ -426,13 +427,13 @@ export class UIManager {
 
   onAimingStart() {
     this.castMeterContainer.classList.remove('hidden');
-    this.castBtnText.textContent = 'LEPAS UNTUK LEMPAR';
+    this.castBtnText.textContent = t('hud_cast_release');
     this.btnCast.classList.remove('idle-pulse');
   }
 
   onAimingEnd() {
     this.castMeterContainer.classList.add('hidden');
-    this.castBtnText.textContent = 'LEMPAR KAIL';
+    this.castBtnText.textContent = t('hud_cast_idle');
     this.btnCast.classList.add('idle-pulse');
   }
 
@@ -452,12 +453,12 @@ export class UIManager {
 
   showReelingMinigame() {
     this.reelingContainer.classList.remove('hidden');
-    this.castBtnText.textContent = 'TAHAN UNTUK TARIK';
+    this.castBtnText.textContent = t('hud_cast_hold_reel');
   }
 
   hideReelingMinigame() {
     this.reelingContainer.classList.add('hidden');
-    this.castBtnText.textContent = 'LEMPAR KAIL';
+    this.castBtnText.textContent = t('hud_cast_idle');
   }
 
   updateReelHUD(playerPos, targetPos, progress, tension) {

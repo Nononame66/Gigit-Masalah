@@ -367,7 +367,70 @@ export function createVoxelBoat() {
 }
 
 /* ==========================================================
-   7. 15 GIGITAN KADAL SPECIES CATALOG WITH LORE & XP
+   8. NPC FISHERMAN — "Nelayan Tua", stationary character sitting
+   near the dock, available for repeatable flavor chat
+   ========================================================== */
+export function createNPCFisherman() {
+  const group = new THREE.Group();
+
+  const C_SKIN  = 0xc99a72;
+  const C_SHIRT = 0x5b7c99;
+  const C_HAT   = 0xd4a373;
+  const C_CRATE = 0x6b4a30;
+
+  // Sitting on a small wooden crate
+  const crate = new THREE.Mesh(new THREE.BoxGeometry(0.5, 0.4, 0.5), getHDMaterial(C_CRATE, 0.85));
+  crate.position.y = 0.2;
+  crate.castShadow = true;
+  crate.receiveShadow = true;
+  group.add(crate);
+
+  // Torso (short, seated pose)
+  const torso = new THREE.Mesh(new THREE.CylinderGeometry(0.22, 0.26, 0.55, 6), getHDMaterial(C_SHIRT, 0.7));
+  torso.position.y = 0.68;
+  torso.castShadow = true;
+  group.add(torso);
+
+  // Head
+  const head = new THREE.Mesh(new THREE.IcosahedronGeometry(0.2, 1), getHDMaterial(C_SKIN, 0.7));
+  head.position.y = 1.08;
+  head.castShadow = true;
+  group.add(head);
+
+  // Straw hat
+  const hatBrim = new THREE.Mesh(new THREE.CylinderGeometry(0.32, 0.32, 0.04, 8), getHDMaterial(C_HAT, 0.8));
+  hatBrim.position.y = 1.2;
+  group.add(hatBrim);
+  const hatTop = new THREE.Mesh(new THREE.ConeGeometry(0.18, 0.18, 8), getHDMaterial(C_HAT, 0.8));
+  hatTop.position.y = 1.32;
+  group.add(hatTop);
+
+  // Simple beard hint
+  const beard = new THREE.Mesh(new THREE.ConeGeometry(0.09, 0.16, 5), getHDMaterial(0xd8d8d8, 0.9));
+  beard.rotation.x = Math.PI;
+  beard.position.set(0, 0.98, 0.14);
+  group.add(beard);
+
+  // Arms resting on knees
+  [-1, 1].forEach(side => {
+    const arm = new THREE.Mesh(new THREE.CylinderGeometry(0.06, 0.06, 0.4, 5), getHDMaterial(C_SKIN, 0.7));
+    arm.rotation.z = side * 0.5;
+    arm.position.set(side * 0.24, 0.5, 0.1);
+    group.add(arm);
+  });
+
+  // Fishing rod resting against his shoulder
+  const rod = new THREE.Mesh(new THREE.CylinderGeometry(0.015, 0.025, 1.6, 5), getHDMaterial(0x8a5a2b, 0.5));
+  rod.rotation.z = Math.PI / 5;
+  rod.position.set(0.28, 1.1, -0.05);
+  group.add(rod);
+
+  group.userData = { head };
+  return group;
+}
+
+/* ==========================================================
+   9. 15 GIGITAN KADAL SPECIES CATALOG WITH LORE & XP
    (unchanged data — only the render style below is faceted)
    ========================================================== */
 export const FISH_SPECIES = [

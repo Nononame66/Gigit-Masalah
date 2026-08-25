@@ -5,6 +5,7 @@
 
 import * as THREE from 'three';
 import { audio } from './audio.js';
+import { t } from './i18n.js';
 
 export class PlayerController {
   constructor(env) {
@@ -338,10 +339,10 @@ export class PlayerController {
     if (!this.boatPromptBtn) return;
     if (this.isOnBoat) {
       this.boatPromptBtn.classList.remove('hidden');
-      this.boatPromptLabel.textContent = 'Turun Kapal';
+      this.boatPromptLabel.textContent = t('boat_exit');
     } else if (this.canBoard()) {
       this.boatPromptBtn.classList.remove('hidden');
-      this.boatPromptLabel.textContent = 'Naik Kapal';
+      this.boatPromptLabel.textContent = t('boat_board');
     } else {
       this.boatPromptBtn.classList.add('hidden');
     }

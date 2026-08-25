@@ -8,6 +8,7 @@ import { GameEngine }       from './gameEngine.js';
 import { UIManager }        from './ui.js';
 import { audio }            from './audio.js';
 import { storage }          from './storage.js';
+import { applyLanguage, t } from './i18n.js';
 
 let env, playerController, engine, ui;
 let lastTime = 0;
@@ -119,6 +120,46 @@ function openIntroDialog(onComplete) {
   modal.classList.remove('hidden');
 }
 
+/* -------- Repeatable NPC small-talk (contextual prompt #2) --------
+   After the one-time intro, walking back up to the same NPC lets you
+   chat again — reuses the exact same modal/DOM, just skips the choice
+   branch and shows a random flavor line instead. */
+const NPC_REPEAT_LINES = [
+  'Sabar ya mancingnya, kadal-kadal itu nggak akan lari kemana-mana.',
+  'Kalau ikannya susah nyangkut, coba ganti umpan di Toko.',
+  'Katanya sih di malam hari ikan-ikan langka lebih sering muncul...',
+  'Jangan lupa cek Fishdex, siapa tau udah deket lengkap semua!',
+  'Kapal kecil di sebelah sana bisa dipakai buat cari ikan di laut lepas, lho.'
+];
+
+function openRepeatableNpcChat() {
+  const modal = document.getElementById('modal-npc-dialog');
+  if (!modal) return;
+
+  const line = NPC_REPEAT_LINES[Math.floor(Math.random() * NPC_REPEAT_LINES.length)];
+  document.getElementById('dialog-npc-text').textContent = line;
+  document.getElementById('dialog-npc-choices').classList.add('hidden');
+  document.getElementById('dialog-npc-continue').classList.remove('hidden');
+  introDialogOnComplete = null; // just flavor chat, nothing to chain into
+  modal.classList.remove('hidden');
+}
+
+const NPC_TALK_DISTANCE = 2.5;
+
+function updateNpcChatPrompt() {
+  const btn = document.getElementById('btn-npc-chat');
+  if (!btn || !env?.npc || !env?.player) return;
+
+  if (playerController?.isOnBoat) {
+    btn.classList.add('hidden');
+    return;
+  }
+  const dx = env.player.position.x - env.npc.position.x;
+  const dz = env.player.position.z - env.npc.position.z;
+  const near = Math.hypot(dx, dz) < NPC_TALK_DISTANCE;
+  btn.classList.toggle('hidden', !near);
+}
+
 /* -------- Tutorial / Onboarding (shown once, first time playing) -------- */
 let tutorialStep = 1;
 let tutorialTotalSteps = 4;
@@ -204,6 +245,9 @@ function setupMenus() {
   const pauseMenu = document.getElementById('screen-pausemenu');
   const challengeModal = document.getElementById('modal-challenge');
 
+  // Apply the saved language to every data-i18n tagged element right away
+  applyLanguage(storage.state.language || 'id');
+
   // Challenge popup close handlers (independent of menu state)
   if (challengeModal) {
     const closeChallenge = () => challengeModal.classList.add('hidden');
@@ -216,7 +260,7 @@ function setupMenus() {
 
   // "MULAI" vs "LANJUTKAN" depending on whether a profile already exists
   const startLabel = document.getElementById('btn-menu-start-label');
-  if (startLabel) startLabel.textContent = storage.hasProfile() ? 'LANJUTKAN' : 'MULAI';
+  if (startLabel) startLabel.textContent = storage.hasProfile() ? t('menu_continue') : t('menu_start');
 
   const enterGame = () => {
     mainMenu.classList.add('hidden');
@@ -287,6 +331,9 @@ function setupMenus() {
     document.getElementById('settings-sens-low')?.classList.toggle('active', sens === 'rendah');
     document.getElementById('settings-sens-mid')?.classList.toggle('active', sens === 'sedang');
     document.getElementById('settings-sens-high')?.classList.toggle('active', sens === 'tinggi');
+
+    const langSelect = document.getElementById('settings-language');
+    if (langSelect) langSelect.value = storage.state.language || 'id';
   };
 
   const openSettings = () => {
@@ -339,8 +386,22 @@ function setupMenus() {
     syncSettingsUI();
   });
 
-  document.getElementById('settings-language')?.addEventListener('change', () => {
+  document.getElementById('settings-language')?.addEventListener('change', (e) => {
+    const lang = e.target.value;
+    storage.setLanguage(lang);
+    applyLanguage(lang);
     audio.playButtonClick();
+
+    // Refresh text that's managed dynamically in JS (not a static
+    // data-i18n element, since its content depends on game state too).
+    const startLabelEl = document.getElementById('btn-menu-start-label');
+    if (startLabelEl) startLabelEl.textContent = storage.hasProfile() ? t('menu_continue') : t('menu_start');
+    playerController?.updateBoatPrompt();
+  });
+
+  document.getElementById('btn-npc-chat')?.addEventListener('click', () => {
+    audio.playButtonClick();
+    openRepeatableNpcChat();
   });
 
   // Shared Credits panel
@@ -365,19 +426,20 @@ function setupMenus() {
 
 function animate(now) {
   requestAnimationFrame(animate);
-  const t  = now * 0.001;
-  const dt = Math.min(t - lastTime, 0.1);
-  lastTime = t;
+  const tSec = now * 0.001;
+  const dt = Math.min(tSec - lastTime, 0.1);
+  lastTime = tSec;
 
   if (!gamePaused) {
     if (playerController && engine)
       playerController.update(dt, engine.state === 'IDLE');
     engine?.update(dt);
+    updateNpcChatPrompt();
   }
 
   // The world (day/night, water, weather) keeps animating even while paused
   // so the Main/Pause menu has a living background.
-  env?.update(t, dt);
+  env?.update(tSec, dt);
   env?.render();
 }
 

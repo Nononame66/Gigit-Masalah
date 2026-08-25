@@ -36,23 +36,23 @@
       <div class="menu-logo">
         <div class="menu-logo-icon">🎣</div>
         <h1 class="menu-title">Gigit Masalah</h1>
-        <p class="menu-subtitle">Game Memancing 3D Bertema Kadal</p>
+        <p class="menu-subtitle" data-i18n="menu_subtitle">Game Memancing 3D Bertema Kadal</p>
       </div>
       <div class="menu-buttons">
         <button id="btn-menu-start" class="menu-btn primary">
           <i class="fa-solid fa-play"></i> <span id="btn-menu-start-label">MULAI</span>
         </button>
         <button id="btn-menu-settings" class="menu-btn">
-          <i class="fa-solid fa-gear"></i> Pengaturan
+          <i class="fa-solid fa-gear"></i> <span data-i18n="menu_settings">Pengaturan</span>
         </button>
         <button id="btn-menu-credits" class="menu-btn">
-          <i class="fa-solid fa-heart"></i> Kredit
+          <i class="fa-solid fa-heart"></i> <span data-i18n="menu_credits">Kredit</span>
         </button>
         <button id="btn-menu-quit" class="menu-btn subtle">
-          <i class="fa-solid fa-door-open"></i> Keluar
+          <i class="fa-solid fa-door-open"></i> <span data-i18n="menu_quit">Keluar</span>
         </button>
       </div>
-      <p class="menu-footer">Dibuat dengan Three.js · Sekolah Project</p>
+      <p class="menu-footer" data-i18n="menu_footer">Dibuat dengan Three.js · Sekolah Project</p>
     </div>
   </div>
 
@@ -63,23 +63,23 @@
     <div class="menu-card">
       <div class="menu-logo">
         <div class="menu-logo-icon">⏸️</div>
-        <h1 class="menu-title" style="font-size:26px;">Jeda</h1>
+        <h1 class="menu-title" style="font-size:26px;" data-i18n="pause_title">Jeda</h1>
       </div>
       <div class="menu-buttons">
         <button id="btn-pause-resume" class="menu-btn primary">
-          <i class="fa-solid fa-play"></i> Lanjutkan
+          <i class="fa-solid fa-play"></i> <span data-i18n="pause_resume">Lanjutkan</span>
         </button>
         <button id="btn-pause-settings" class="menu-btn">
-          <i class="fa-solid fa-gear"></i> Pengaturan
+          <i class="fa-solid fa-gear"></i> <span data-i18n="pause_settings">Pengaturan</span>
         </button>
         <button id="btn-pause-credits" class="menu-btn">
-          <i class="fa-solid fa-heart"></i> Kredit
+          <i class="fa-solid fa-heart"></i> <span data-i18n="pause_credits">Kredit</span>
         </button>
         <button id="btn-pause-restart" class="menu-btn subtle">
-          <i class="fa-solid fa-rotate-right"></i> Restart
+          <i class="fa-solid fa-rotate-right"></i> <span data-i18n="pause_restart">Restart</span>
         </button>
         <button id="btn-pause-mainmenu" class="menu-btn subtle">
-          <i class="fa-solid fa-house"></i> Menu Utama
+          <i class="fa-solid fa-house"></i> <span data-i18n="pause_mainmenu">Menu Utama</span>
         </button>
       </div>
     </div>
@@ -91,42 +91,43 @@
   <div id="modal-settings" class="modal-backdrop hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-gear"></i> Pengaturan</h2>
+        <h2><i class="fa-solid fa-gear"></i> <span data-i18n="settings_title">Pengaturan</span></h2>
         <button id="btn-close-settings" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
       <div class="settings-row">
-        <span>🔊 Audio (Musik &amp; Efek Suara)</span>
+        <span data-i18n="settings_audio">🔊 Audio (Musik &amp; Efek Suara)</span>
         <button id="settings-toggle-sound" class="settings-toggle">ON</button>
       </div>
 
       <div class="settings-row">
-        <span>🖼️ Kualitas Grafis</span>
+        <span data-i18n="settings_graphics">🖼️ Kualitas Grafis</span>
         <div class="settings-segmented">
-          <button id="settings-quality-high" class="settings-seg-btn active">Tinggi</button>
-          <button id="settings-quality-low" class="settings-seg-btn">Rendah</button>
+          <button id="settings-quality-high" class="settings-seg-btn active" data-i18n="settings_quality_high">Tinggi</button>
+          <button id="settings-quality-low" class="settings-seg-btn" data-i18n="settings_quality_low">Rendah</button>
         </div>
       </div>
 
       <div class="settings-row">
-        <span>🎮 Sensitivitas Kamera</span>
+        <span data-i18n="settings_sensitivity">🎮 Sensitivitas Kamera</span>
         <div class="settings-segmented">
-          <button id="settings-sens-low" class="settings-seg-btn">Rendah</button>
-          <button id="settings-sens-mid" class="settings-seg-btn active">Sedang</button>
-          <button id="settings-sens-high" class="settings-seg-btn">Tinggi</button>
+          <button id="settings-sens-low" class="settings-seg-btn" data-i18n="settings_sens_low">Rendah</button>
+          <button id="settings-sens-mid" class="settings-seg-btn active" data-i18n="settings_sens_mid">Sedang</button>
+          <button id="settings-sens-high" class="settings-seg-btn" data-i18n="settings_sens_high">Tinggi</button>
         </div>
       </div>
 
       <div class="settings-row">
-        <span>🌐 Bahasa</span>
+        <span data-i18n="settings_language">🌐 Bahasa</span>
         <select id="settings-language" class="settings-select">
-          <option value="id" selected>Bahasa Indonesia</option>
+          <option value="id">Bahasa Indonesia</option>
+          <option value="en">English</option>
         </select>
       </div>
 
       <div class="settings-info-block">
-        <strong>🎮 Kontrol</strong>
-        <p>PC: WASD gerak · drag mouse kamera · SPASI lempar/tarik<br>
+        <strong data-i18n="settings_controls_title">🎮 Kontrol</strong>
+        <p data-i18n="settings_controls_desc">PC: WASD gerak · drag mouse kamera · SPASI lempar/tarik<br>
            HP: Joystick kiri gerak · geser layar kamera · tombol hijau lempar/tarik</p>
       </div>
     </div>
@@ -138,7 +139,7 @@
   <div id="modal-credits" class="modal-backdrop hidden">
     <div class="modal-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-heart"></i> Kredit</h2>
+        <h2><i class="fa-solid fa-heart"></i> <span data-i18n="credits_title">Kredit</span></h2>
         <button id="btn-close-credits" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="credits-list">
@@ -187,16 +188,16 @@
       <button id="btn-sound" class="hud-icon-btn"><i class="fa-solid fa-volume-high"></i></button>
       <button id="btn-pause" class="hud-icon-btn"><i class="fa-solid fa-pause"></i></button>
       <button id="btn-inventory" class="hud-nav-btn coral">
-        <i class="fa-solid fa-bag-shopping"></i><span>Tas</span>
+        <i class="fa-solid fa-bag-shopping"></i><span data-i18n="hud_inventory">Tas</span>
       </button>
       <button id="btn-progress" class="hud-nav-btn coral">
-        <i class="fa-solid fa-bullseye"></i><span>Progres</span>
+        <i class="fa-solid fa-bullseye"></i><span data-i18n="hud_progress">Progres</span>
       </button>
       <button id="btn-fishdex" class="hud-nav-btn cyan">
-        <i class="fa-solid fa-book-fish"></i><span>Fishdex</span>
+        <i class="fa-solid fa-book-fish"></i><span data-i18n="fishdex_title">Fishdex</span>
       </button>
       <button id="btn-shop" class="hud-nav-btn gold">
-        <i class="fa-solid fa-store"></i><span>Toko</span>
+        <i class="fa-solid fa-store"></i><span data-i18n="hud_shop">Toko</span>
       </button>
     </div>
 
@@ -232,7 +233,7 @@
       </div>
       <button id="btn-cast-action" class="hud-cast-btn idle-pulse">
         <i class="fa-solid fa-crosshairs"></i>
-        <span id="cast-btn-text">LEMPAR</span>
+        <span id="cast-btn-text" data-i18n="hud_cast_idle">LEMPAR KAIL</span>
       </button>
     </div>
 
@@ -250,7 +251,7 @@
     <!-- ╚══════════════════════════════╝ -->
     <div id="boat-bonus-badge" class="boat-bonus-badge hidden">
       <i class="fa-solid fa-water"></i>
-      <span>Bonus Ikan Langka Aktif</span>
+      <span data-i18n="boat_bonus_badge">Bonus Ikan Langka Aktif</span>
     </div>
 
     <!-- ╔══════════════════════════════╗ -->
@@ -259,6 +260,14 @@
     <button id="btn-boat-interact" class="boat-interact-btn hidden">
       <i class="fa-solid fa-anchor"></i>
       <span id="boat-interact-label">Naik Kapal</span>
+    </button>
+
+    <!-- ╔══════════════════════════════╗ -->
+    <!-- ║  NPC CHAT PROMPT              ║ -->
+    <!-- ╚══════════════════════════════╝ -->
+    <button id="btn-npc-chat" class="npc-chat-btn hidden">
+      <i class="fa-solid fa-comment-dots"></i>
+      <span data-i18n="npc_chat_prompt">Ngobrol dengan Nelayan Tua</span>
     </button>
 
     <!-- ╔══════════════════════════════╗ -->
@@ -317,7 +326,7 @@
     </div>
 
     <!-- hint -->
-    <div id="hint-banner" class="hint-banner">
+    <div id="hint-banner" class="hint-banner" data-i18n="hint_banner">
       <kbd>WASD</kbd> gerak &nbsp;·&nbsp; <kbd>drag</kbd> kamera &nbsp;·&nbsp; <kbd>SPASI</kbd> lempar/tarik &nbsp;·&nbsp; dekati kapal buat naik
     </div>
 
@@ -358,12 +367,12 @@
   <div id="modal-shop" class="modal-backdrop hidden">
     <div class="modal-box shop-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-store"></i> Toko</h2>
+        <h2><i class="fa-solid fa-store"></i> <span data-i18n="shop_title">Toko</span></h2>
         <button id="btn-close-shop" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="shop-tabs">
-        <button class="shop-tab active" data-tab="rods">🎣 Pancingan</button>
-        <button class="shop-tab" data-tab="baits">🪱 Umpan</button>
+        <button class="shop-tab active" data-tab="rods" data-i18n="shop_tab_rods">🎣 Pancingan</button>
+        <button class="shop-tab" data-tab="baits" data-i18n="shop_tab_baits">🪱 Umpan</button>
       </div>
       <div class="shop-content">
         <div id="shop-rods-list" class="shop-grid"></div>
@@ -376,7 +385,7 @@
   <div id="modal-fishdex" class="modal-backdrop hidden">
     <div class="modal-box fishdex-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-book-fish"></i> Fishdex</h2>
+        <h2><i class="fa-solid fa-book-fish"></i> <span data-i18n="fishdex_title">Fishdex</span></h2>
         <button id="btn-close-fishdex" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="fishdex-stats">
@@ -391,13 +400,13 @@
   <div id="modal-progress" class="modal-backdrop hidden">
     <div class="modal-box progress-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-bullseye"></i> Progres</h2>
+        <h2><i class="fa-solid fa-bullseye"></i> <span data-i18n="progress_title">Progres</span></h2>
         <button id="btn-close-progress" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div class="shop-tabs">
-        <button class="progress-tab active" data-tab="mission">🎯 Misi Harian</button>
-        <button class="progress-tab" data-tab="achievements">🏅 Lencana</button>
-        <button class="progress-tab" data-tab="leaderboard">🏆 Papan Skor</button>
+        <button class="progress-tab active" data-tab="mission" data-i18n="progress_tab_mission">🎯 Misi Harian</button>
+        <button class="progress-tab" data-tab="achievements" data-i18n="progress_tab_achievements">🏅 Lencana</button>
+        <button class="progress-tab" data-tab="leaderboard" data-i18n="progress_tab_leaderboard">🏆 Papan Skor</button>
       </div>
 
       <div id="progress-mission-panel">
@@ -426,11 +435,11 @@
   <div id="modal-inventory" class="modal-backdrop hidden">
     <div class="modal-box inventory-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-bag-shopping"></i> Tas Barang</h2>
+        <h2><i class="fa-solid fa-bag-shopping"></i> <span data-i18n="inventory_title">Tas Barang</span></h2>
         <button id="btn-close-inventory" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
       <div id="inventory-list" class="inventory-list"></div>
-      <div id="inventory-empty" class="inventory-empty hidden">Tas kamu masih kosong. Yuk mancing dulu!</div>
+      <div id="inventory-empty" class="inventory-empty hidden" data-i18n="inventory_empty">Tas kamu masih kosong. Yuk mancing dulu!</div>
     </div>
   </div>
 
@@ -438,7 +447,7 @@
   <div id="modal-profile" class="modal-backdrop hidden">
     <div class="modal-box profile-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-user-pen"></i> Setup Profil</h2>
+        <h2><i class="fa-solid fa-user-pen"></i> <span data-i18n="profile_title">Setup Profil</span></h2>
         <button id="btn-close-profile" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
@@ -452,7 +461,7 @@
       </div>
 
       <div class="profile-status-card">
-        <h3 class="profile-status-title"><i class="fa-solid fa-chart-simple"></i> Status Karakter</h3>
+        <h3 class="profile-status-title"><i class="fa-solid fa-chart-simple"></i> <span data-i18n="profile_status_title">Status Karakter</span></h3>
         <div class="profile-status-grid">
           <div class="profile-status-stat">
             <span>Level</span>
@@ -476,10 +485,10 @@
         </div>
       </div>
 
-      <label class="profile-name-label" for="profile-name-input">Nama Pemancing</label>
+      <label class="profile-name-label" for="profile-name-input" data-i18n="profile_name_label">Nama Pemancing</label>
       <input type="text" id="profile-name-input" class="profile-name-input" maxlength="16" placeholder="Masukkan nama kamu">
 
-      <button id="btn-save-profile" class="hd-nav-btn gold wide">Simpan &amp; Mulai Main</button>
+      <button id="btn-save-profile" class="hd-nav-btn gold wide" data-i18n="profile_save">Simpan &amp; Mulai Main</button>
     </div>
   </div>
 
@@ -487,7 +496,7 @@
   <div id="modal-tutorial" class="modal-backdrop hidden">
     <div class="modal-box tutorial-box">
       <div class="modal-header">
-        <h2><i class="fa-solid fa-graduation-cap"></i> Cara Bermain</h2>
+        <h2><i class="fa-solid fa-graduation-cap"></i> <span data-i18n="tutorial_title">Cara Bermain</span></h2>
         <button id="btn-close-tutorial" class="close-btn"><i class="fa-solid fa-xmark"></i></button>
       </div>
 
